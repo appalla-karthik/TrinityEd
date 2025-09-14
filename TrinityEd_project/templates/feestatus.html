@@ -1,0 +1,295 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fee Status | TrinityEd</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: linear-gradient(135deg, #f3f6ff, #e6f0ff, #ffffff);
+    min-height: 100vh;
+    overflow-x: hidden;
+    opacity:0; animation: fadeInBody 1s forwards;
+  }
+  @keyframes fadeInBody { to{opacity:1;} }
+
+  /* Mac Window */
+  .mac-window {
+    width: 90%;
+    margin: 2rem auto;
+    height: 90vh;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .mac-header {
+    display: flex; align-items: center;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .mac-btn {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    margin-right: 8px;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .red { background:#ef4444; }
+  .yellow { background:#facc15; }
+  .green { background:#22c55e; }
+  .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
+
+  /* ===== Stats Cards ===== */
+  .stat-card {
+    border-radius: 20px; padding: 1.5rem;
+    display: flex; gap: 1rem; align-items: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transition: all 0.4s ease; position: relative; overflow: hidden;
+    transform: translateY(20px); opacity:0; animation: fadeUp 0.8s forwards;
+  }
+  .stat-card:nth-child(1){animation-delay:0.2s;}
+  .stat-card:nth-child(2){animation-delay:0.4s;}
+  .stat-card:nth-child(3){animation-delay:0.6s;}
+  .stat-card:hover { transform: translateY(-5px) scale(1.05); box-shadow:0 15px 30px rgba(0,0,0,0.15);}
+  .stat-icon { font-size:2.5rem; transition: transform 0.3s ease;}
+  .stat-card:hover .stat-icon { transform: scale(1.2) rotate(-10deg); }
+  @keyframes fadeUp { to {opacity:1; transform: translateY(0);} }
+
+  /* ===== Table ===== */
+  table { border-collapse: separate; border-spacing: 0; width: 100%; }
+  th, td { padding: 12px 16px; }
+  th {
+    background: linear-gradient(to right, #2563eb33, #3b82f6);
+    font-weight: 600; color: #1e3a8a; text-align: left;
+  }
+  tbody tr { background: rgba(255,255,255,0.95); transition: all 0.3s ease; cursor:pointer;}
+  tbody tr:nth-child(even){ background: rgba(37,99,235,0.05); }
+  tbody tr:hover { transform: translateY(-3px); background: rgba(37,99,235,0.12); box-shadow:0 8px 20px rgba(37,99,235,0.1); }
+  .badge { font-size:0.75rem; font-weight:600; padding:0.2rem 0.6rem; border-radius:9999px; color:white; transition: all 0.3s ease;}
+  .paid { background:#22c55e; }
+  .pending { background:#f97316; }
+  .overdue { background:#ef4444; }
+
+  /* Progress bar */
+  .progress { height: 6px; background: #e5e7eb; border-radius: 12px; overflow:hidden; margin-top:0.5rem; }
+  .progress-fill { height: 100%; background: #2563eb; width:0%; transition: width 1.5s ease-in-out; }
+
+  /* Chart box */
+  .chart-box { background: rgba(255,255,255,0.95); border-radius: 20px; padding: 1.8rem; margin-top: 2rem; box-shadow: 0 10px 20px rgba(0,0,0,0.08); transform: translateY(20px); opacity:0; animation: fadeUpChart 0.8s forwards;}
+  .chart-box:nth-child(1){animation-delay:0.8s;}
+  .chart-box:nth-child(2){animation-delay:1s;}
+  @keyframes fadeUpChart { to {opacity:1; transform:translateY(0);} }
+
+  /* Dock (same as before) */
+  .dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); border-radius: 20px; padding: 8px 14px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.18);}
+  .app { width: 70px; height: 70px; position: relative; transition: all cubic-bezier(0.25, 1, 0.5, 1) 200ms; }
+  .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease, filter 200ms ease; }
+  .app a { display: block; width: 100%; height: 100%; }
+  .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
+  .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 150ms ease-in-out, transform 150ms ease-in-out; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: white; white-space: nowrap; pointer-events: none; }
+  .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+  .app::after { content: ""; position: absolute; bottom: -18%; left: 50%; width: 75%; height: 35%; transform: translateX(-50%) scaleY(-1); background: inherit; opacity: 0.18; border-radius: 14px; filter: blur(6px); }
+  .app:hover { width: 95px; height: 95px; margin-top: -35px; }
+  .app:hover + .app { width: 85px; height: 85px; margin-top: -20px; }
+  .app:hover + .app + .app { width: 78px; height: 78px; margin-top: -10px; }
+  .app:has(+ .app:hover){ width: 85px; height: 85px; margin-top: -20px; }
+  .app:has(+ .app + .app:hover){ width: 78px; height: 78px; margin-top: -10px; }
+  .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; background: white; border-radius: 50%; box-shadow: 0 0 6px rgba(255,255,255,0.7); opacity: 0; transition: opacity 0.3s ease; }
+  .app.active .indicator { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Mac Window -->
+<div id="macWindow" class="mac-window">
+  <div class="mac-header">
+    <span id="btnClose" class="mac-btn red"></span>
+    <span id="btnMinimize" class="mac-btn yellow"></span>
+    <span id="btnMaximize" class="mac-btn green"></span>
+    <span class="mac-title">Fee Status</span>
+  </div>
+
+  <!-- Main Content -->
+  <main id="macContent" class="flex-1 p-8 overflow-y-auto">
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div class="stat-card bg-gradient-to-tr from-blue-500 to-blue-700 text-white">
+        <span class="material-icons stat-icon animate-bounce">paid</span>
+        <div>
+          <p class="text-sm opacity-80">Total Fees Collected</p>
+          <p class="text-3xl font-bold count-up" data-target="{{ total_collected }}">0</p>
+          <div class="progress"><div class="progress-fill" style="width:{{ total_collected_percentage }}%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card bg-gradient-to-tr from-red-500 to-red-700 text-white">
+        <span class="material-icons stat-icon animate-bounce">pending</span>
+        <div>
+          <p class="text-sm opacity-80">Pending Fees</p>
+          <p class="text-3xl font-bold count-up" data-target="{{ total_pending }}">0</p>
+          <div class="progress"><div class="progress-fill" style="width:{{ total_pending_percentage }}%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card bg-gradient-to-tr from-green-500 to-green-700 text-white">
+        <span class="material-icons stat-icon animate-bounce">schedule</span>
+        <div>
+          <p class="text-sm opacity-80">Due Soon</p>
+          <p class="text-3xl font-bold count-up" data-target="{{ due_soon }}">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fee Table -->
+    <div class="chart-box">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-700">Student Fee Details</h2>
+      <div class="overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Student Name</th><th>Total Fee</th><th>Paid</th><th>Pending</th><th>Due Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+            <tr>
+              <td>{{ student.name }}</td>
+              <td>₹{{ student.total_fee }}</td>
+              <td class="text-green-600 font-semibold">₹{{ student.paid }}</td>
+              <td class="text-red-600 font-semibold">₹{{ student.pending }}</td>
+              <td>{{ student.due_date }}</td>
+              <td>
+                {% if student.pending == 0 %}
+                  <span class="badge paid">Paid</span>
+                {% elif student.due_date < today %}
+                  <span class="badge overdue">Overdue</span>
+                {% else %}
+                  <span class="badge pending">Pending</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-box">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-700">Fee Collection Trend</h2>
+      <canvas id="feeChart"></canvas>
+    </div>
+  </main>
+</div>
+
+<!-- Mac Dock -->
+<nav id="dock" class="dock">
+  <ul class="flex list-none p-0 gap-3">
+    <li class="app active"><a href="{% url 'mentor_dashboard'%}"><img src="{% static 'img/mentordashboard.png' %}" alt="Overview"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'attendance' %}"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'logout' %}" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+  </ul>
+</nav>
+
+<script>
+  // Count-up animation
+  document.querySelectorAll(".count-up").forEach(el => {
+    let target = +el.getAttribute("data-target");
+    let count = 0, step = target / 80;
+    function update() {
+      if(count < target) { count += step; el.textContent = Math.floor(count); requestAnimationFrame(update); }
+      else { el.textContent = target; }
+    }
+    update();
+  });
+
+  // Chart
+  const ctx = document.getElementById('feeChart').getContext('2d');
+  const gradient = ctx.createLinearGradient(0,0,0,300);
+  gradient.addColorStop(0, 'rgba(37,99,235,0.35)');
+  gradient.addColorStop(1, 'rgba(37,99,235,0.05)');
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: {{ months|safe }}, datasets: [{ label: 'Fees Collected', data: {{ fee_collected|safe }}, backgroundColor: gradient, borderColor: '#2563eb', borderWidth: 3, fill: true, tension: 0.35 }] },
+    options: { responsive:true, animation:{duration:1200}, scales:{ y:{beginAtZero:true} } }
+  });
+
+  // Mac Buttons Functionality
+  const macWindow = document.getElementById("macWindow");
+  const macContent = document.getElementById("macContent");
+  const btnClose = document.getElementById("btnClose");
+  const btnMinimize = document.getElementById("btnMinimize");
+  const btnMaximize = document.getElementById("btnMaximize");
+  let isMaximized = false;
+  let isMinimized = false;
+
+  // Close → hide window
+  btnClose.addEventListener("click", () => {
+    macWindow.style.display = "none";
+  });
+
+  // Minimize → hide content, keep normal size
+  btnMinimize.addEventListener("click", () => {
+    if (!isMinimized && !isMaximized) {
+      macContent.style.display = "none";
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "auto";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
+    } else if (isMinimized) {
+      macContent.style.display = "block";
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
+    }
+    isMinimized = !isMinimized;
+  });
+
+  // Maximize → toggle fullscreen
+  btnMaximize.addEventListener("click", () => {
+    if (!isMaximized) {
+      macWindow.style.position = "fixed";
+      macWindow.style.top = "0";
+      macWindow.style.left = "0";
+      macWindow.style.width = "100%";
+      macWindow.style.height = "100vh";
+      macWindow.style.margin = "0";
+      macWindow.style.borderRadius = "0";
+    } else {
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
+    }
+    isMaximized = !isMaximized;
+    if (isMaximized) isMinimized = false; // Reset minimized state when maximizing
+  });
+
+  // Dock bounce
+  document.querySelectorAll(".app").forEach(app => {
+    app.addEventListener("click", () => {
+      document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
+      app.classList.add("active");
+      const img = app.querySelector("img");
+      img.classList.add("bounce");
+      img.addEventListener("animationend", () => img.classList.remove("bounce"), { once: true });
+    });
+  });
+</script>
+</body>
+</html>

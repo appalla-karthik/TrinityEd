@@ -1,0 +1,662 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Dashboard | TrinityEd</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    /* 🔥 Animated Background */
+    body {
+      background: linear-gradient(135deg, #f0f4ff, #e6f0ff, #fefefe);
+      background-size: 300% 300%;
+      animation: gradientShift 12s ease infinite;
+      font-family: 'Inter', system-ui, sans-serif;
+      scroll-behavior: smooth;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* macOS Window */
+    .mac-window {
+      width: 90%;
+      margin: 2rem auto;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      background: #fff;
+      transition: all 0.3s ease;
+    }
+    .mac-header {
+      background: #f1f1f1;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mac-btn {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .mac-btn.red { background: #ff5f57; }
+    .mac-btn.yellow { background: #ffbd2f; }
+    .mac-btn.green { background: #28c840; }
+
+    /* Sidebar Anim */
+    @keyframes slideInLeft { 
+      from { opacity: 0; transform: translateX(-30px); } 
+      to { opacity: 1; transform: translateX(0); } 
+    }
+    aside { animation: slideInLeft 0.7s ease-out; }
+    .sidebar-link {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .sidebar-link::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(37,99,235,0.1), transparent);
+      transition: left 0.4s ease;
+    }
+    .sidebar-link:hover::after { left: 100%; }
+    .sidebar-link:hover {
+      color: #2563eb;
+      transform: translateX(6px);
+      box-shadow: inset 4px 0 0 #2563eb;
+    }
+    .active-link {
+      background: linear-gradient(90deg, #2563eb33, #2563eb11);
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      border: 1px solid rgba(37,99,235,0.1);
+      transition: transform 0.5s ease, box-shadow 0.5s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .icon-box {
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .stat-card:hover {
+      box-shadow: 0 8px 32px rgba(37,99,235,0.25);
+    }
+    .icon-box:hover {
+      transform: rotate(10deg) scale(1.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: all 0.5s ease;
+    }
+
+    /* Progress Ring */
+    .progress-ring__circle {
+      stroke-dasharray: 339.292;
+      stroke-dashoffset: 339.292;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 10px currentColor);
+      transition: stroke-dashoffset 1.5s ease, stroke 0.5s ease;
+    }
+    .gradient-blue { stroke: url(#gradientBlue); }
+    .gradient-red { stroke: url(#gradientRed); }
+    .gradient-green { stroke: url(#gradientGreen); }
+
+    /* Material Icons Bounce */
+    .material-icons {
+      animation: bounce 1.5s infinite;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* Count Up Pulse */
+    .count-up {
+      animation: pulse 1s ease-in-out forwards;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* Alerts */
+    .alert-item {
+      transition: all 0.3s ease;
+      animation: fadeUp 0.6s ease forwards;
+      opacity: 0;
+      transform-origin: left;
+      position: relative;
+    }
+    .alert-item:hover {
+      background: rgba(37,99,235,0.05);
+      border-radius: 10px;
+    }
+    .alert-item::before {
+      content: "⚠️";
+      position: absolute;
+      left: -28px;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: all 0.3s ease;
+    }
+    .alert-item:hover::before {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .alert-badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Charts */
+    .chart-box {
+      animation: fadeUp 1s ease forwards;
+      opacity: 0;
+      transform-origin: bottom;
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(37,99,235,0.15);
+    }
+    .chart-box:hover { 
+      transform: scale(1.05); 
+      box-shadow: 0 14px 32px rgba(37,99,235,0.28);
+    }
+
+    /* ✨ Shimmer Effect */
+    .chart-box::before {
+      content: "";
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.35), transparent, rgba(255,255,255,0.35));
+      transform: rotate(25deg);
+      animation: shimmer 6s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-50%) rotate(25deg); }
+      100% { transform: translateX(50%) rotate(25deg); }
+    }
+
+    /* Dock */
+    .dock {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 20px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .app { 
+      width: 70px; height: 70px; 
+      position: relative; 
+      transition: all cubic-bezier(0.25, 1, 0.5, 1) 200ms; 
+    }
+    .app img { 
+      width: 100%; height: 100%; 
+      border-radius: 14px; 
+      transition: transform 200ms ease, filter 200ms ease; 
+    }
+    .app a { display: block; width: 100%; height: 100%; }
+    .app:hover img { 
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); 
+      transform: translateY(-4px); 
+    }
+    .tooltip { 
+      position: absolute; 
+      top: -50px; left: 50%; 
+      transform: translateX(-50%); 
+      opacity: 0;
+      transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+      background: rgba(0,0,0,0.7); 
+      padding: 6px 10px; 
+      border-radius: 8px; 
+      font-size: 13px; 
+      font-weight: 500; 
+      color: white; 
+      white-space: nowrap; 
+      pointer-events: none; 
+    }
+    .app:hover .tooltip { 
+      opacity: 1; 
+      transform: translateX(-50%) translateY(-6px); 
+    }
+    .app::after { 
+      content: ""; 
+      position: absolute; 
+      bottom: -18%; 
+      left: 50%; 
+      width: 75%; height: 35%; 
+      transform: translateX(-50%) scaleY(-1);
+      background: inherit; 
+      opacity: 0.18; 
+      border-radius: 14px; 
+      filter: blur(6px); 
+    }
+    .app:hover { width: 95px; height: 95px; margin-top: -35px; }
+    .app:hover + .app { width: 85px; height: 85px; margin-top: -20px; }
+    .app:hover + .app + .app { width: 78px; height: 78px; margin-top: -10px; }
+    .app:has(+ .app:hover){ width: 85px; height: 85px; margin-top: -20px; }
+    .app:has(+ .app + .app:hover){ width: 78px; height: 78px; margin-top: -10px; }
+
+    /* Bounce Animation */
+    @keyframes bounce { 
+      0%, 100% { transform: translateY(0) scale(1); } 
+      30% { transform: translateY(-18px) scale(1.12); } 
+      60% { transform: translateY(6px) scale(0.95); } 
+    }
+    .bounce { animation: bounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1); }
+
+    /* Indicator */
+    .indicator { 
+      position: absolute; 
+      bottom: -8px; left: 50%; 
+      transform: translateX(-50%);
+      width: 8px; height: 8px; 
+      background: white; 
+      border-radius: 50%; 
+      opacity: 0; 
+      transition: opacity 0.3s ease; 
+    }
+    .app.active .indicator { opacity: 1; }
+
+    /* FadeUp */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(25px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* FadeIn Animation */
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(25px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.8s forwards;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+  <!-- macOS Window Wrapper -->
+  <div id="macWindow" class="mac-window flex flex-col h-[90vh]">
+    <div class="mac-header">
+      <span id="btnClose" class="mac-btn red"></span>
+      <span id="btnMinimize" class="mac-btn yellow"></span>
+      <span id="btnMaximize" class="mac-btn green"></span>
+      <span class="ml-4 font-medium text-gray-600">Mentor Dashboard</span>
+    </div>
+
+    <!-- Main Content -->
+    <main id="macContent" class="flex-1 p-8 overflow-y-auto animate-fadeIn">
+      <!-- Stats cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Students -->
+        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+          <div class="icon-box relative w-20 h-20 flex items-center justify-center">
+            <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__circle gradient-blue" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            </svg>
+            <span class="material-icons text-3xl text-blue-700">groups</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-gray-500">Total Students</h3>
+            <p class="text-3xl font-extrabold text-blue-700 count-up" data-target="120">0</p>
+          </div>
+        </div>
+
+        <!-- At-Risk Students -->
+        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+          <div class="icon-box relative w-20 h-20 flex items-center justify-center">
+            <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__circle gradient-red" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            </svg>
+            <span class="material-icons text-3xl text-red-600">warning</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-gray-500">At-Risk Students</h3>
+            <p class="text-3xl font-extrabold text-red-600 count-up" data-target="15">0</p>
+          </div>
+        </div>
+
+        <!-- Alerts Sent -->
+        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+          <div class="icon-box relative w-20 h-20 flex items-center justify-center">
+            <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            </svg>
+            <span class="material-icons text-3xl text-green-600">notifications_active</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-gray-500">Alerts Sent</h3>
+            <p class="text-3xl font-extrabold text-green-600 count-up" data-target="45">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
+          <h3 class="text-lg font-semibold mb-4 text-gray-700">Attendance Trends</h3>
+          <canvas id="attendanceChart"></canvas>
+        </div>
+        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
+          <h3 class="text-lg font-semibold mb-4 text-gray-700">Performance Overview</h3>
+          <canvas id="performanceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Alerts Section -->
+      <div class="mt-8 bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Recent Alerts</h3>
+        <ul class="divide-y divide-gray-200">
+          <li class="alert-item py-2 flex justify-between rounded-md px-2">
+            <span>Student A - Low Attendance (65%)</span>
+            <span class="alert-badge bg-red-100 text-red-600">Critical</span>
+          </li>
+          <li class="alert-item py-2 flex justify-between rounded-md px-2">
+            <span>Student B - Fee Pending</span>
+            <span class="alert-badge bg-yellow-100 text-yellow-600">Warning</span>
+          </li>
+          <li class="alert-item py-2 flex justify-between rounded-md px-2">
+            <span>Student C - Consistent Poor Performance</span>
+            <span class="alert-badge bg-red-100 text-red-600">Critical</span>
+          </li>
+        </ul>
+      </div>
+    </main>
+  </div>
+
+  <!-- Dock -->
+  <nav id="dock" class="dock fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+    <ul class="flex list-none p-0 gap-3">
+      <li class="app active">
+        <a href="{% url 'mentor_dashboard'%}">
+          <img src="{% static 'img/mentordashboard.png' %}" alt="Overview"/>
+          <span class="tooltip">Overview</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'attendance' %}">
+          <img src="{% static 'img/attendance.png' %}" alt="Attendance"/>
+          <span class="tooltip">Attendance</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'performance' %}">
+          <img src="{% static 'img/performance.png' %}" alt="Performance"/>
+          <span class="tooltip">Performance</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'fee_status' %}">
+          <img src="{% static 'img/fees.png' %}" alt="Fee Status"/>
+          <span class="tooltip">Fee Status</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'alerts' %}">
+          <img src="{% static 'img/alerts.png' %}" alt="Alerts"/>
+          <span class="tooltip">Alerts</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'logout' %}">
+          <img src="{% static 'img/logout.png' %}" alt="Logout"/>
+          <span class="tooltip">Logout</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+    </ul>
+  </nav>
+
+  <script>
+    // macOS Window Controls
+    const macWindow = document.getElementById("macWindow");
+    const macContent = document.getElementById("macContent");
+    const btnClose = document.getElementById("btnClose");
+    const btnMinimize = document.getElementById("btnMinimize");
+    const btnMaximize = document.getElementById("btnMaximize");
+
+    let isMaximized = false;
+    let isMinimized = false;
+
+    // 🔴 Close → hide window
+    btnClose.addEventListener("click", () => {
+      macWindow.style.display = "none";
+    });
+
+    // 🟡 Minimize → toggle content visibility based on state
+    btnMinimize.addEventListener("click", () => {
+      if (!isMinimized) {
+        // If maximized, restore to normal with content visible
+        if (isMaximized) {
+          macWindow.style.position = "static";
+          macWindow.style.width = "90%";
+          macWindow.style.height = "90vh"; // Consistent height
+          macWindow.style.margin = "2rem auto";
+          macWindow.style.borderRadius = "14px";
+          macContent.style.display = "block"; // Keep content visible
+          isMaximized = false;
+          return; // Exit after restoring
+        }
+        // From normal state, hide content
+        macContent.style.display = "none";
+        macWindow.style.height = "60px"; // Minimum height for header visibility
+        macWindow.style.margin = "2rem auto";
+      } else {
+        // Restore from minimized state
+        macContent.style.display = "block";
+        macWindow.style.height = "90vh";
+        macWindow.style.margin = "2rem auto";
+      }
+      isMinimized = !isMinimized;
+    });
+
+    // 🟢 Maximize → toggle fullscreen
+    btnMaximize.addEventListener("click", () => {
+      if (!isMaximized) {
+        macWindow.style.position = "fixed";
+        macWindow.style.top = "0";
+        macWindow.style.left = "0";
+        macWindow.style.width = "100%";
+        macWindow.style.height = "100vh";
+        macWindow.style.margin = "0";
+        macWindow.style.borderRadius = "0";
+      } else {
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "90vh";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      }
+      macContent.style.display = "block";
+      isMaximized = !isMaximized;
+      if (isMaximized) isMinimized = false; // Reset minimized state
+    });
+
+    // Dock bounce
+    document.querySelectorAll(".app").forEach(app => {
+      app.addEventListener("click", () => {
+        document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
+        app.classList.add("active");
+        const img = app.querySelector("img");
+        img.classList.add("bounce");
+        img.addEventListener("animationend", () => img.classList.remove("bounce"), {once: true});
+      });
+    });
+
+    // Count-up Animation
+    document.querySelectorAll('.count-up').forEach(el => {
+      const target = +el.getAttribute('data-target');
+      let count = 0;
+      const step = Math.ceil(target / 100);
+
+      const update = () => {
+        count += step;
+        if(count > target) count = target;
+        el.textContent = count;
+        if(count < target) requestAnimationFrame(update);
+      };
+      update();
+    });
+
+    // Progress Ring Animation
+    document.querySelectorAll('.stat-card').forEach(card => {
+      const circle = card.querySelector('.progress-ring__circle');
+      const target = +card.querySelector('.count-up').getAttribute('data-target');
+      const maxValue = 120;
+      const radius = 54;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (target / maxValue) * circumference;
+
+      setTimeout(() => {
+        circle.style.strokeDashoffset = offset;
+      }, 500);
+    });
+
+    // ✅ Attendance Chart (Interactive Hover)
+    const ctx1 = document.getElementById('attendanceChart').getContext('2d');
+    const gradientBlue = ctx1.createLinearGradient(0, 0, 0, 300);
+    gradientBlue.addColorStop(0, 'rgba(37,99,235,0.35)');
+    gradientBlue.addColorStop(1, 'rgba(37,99,235,0.05)');
+
+    new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        datasets: [{
+          label: 'Attendance %',
+          data: [80, 75, 90, 60, 85],
+          borderColor: '#2563eb',
+          backgroundColor: gradientBlue,
+          fill: true,
+          tension: 0.35,
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 9,
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "#2563eb",
+          pointHoverBorderWidth: 3
+        }]
+      },
+      options: {
+        plugins: {
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                let val = context.raw;
+                if (val < 70) {
+                  return `⚠ Low Attendance: ${val}%`;
+                }
+                return `✅ Attendance: ${val}%`;
+              }
+            }
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          intersect: false
+        },
+        scales: {
+          y: { max: 100, beginAtZero: true }
+        }
+      }
+    });
+
+    // ✅ Performance Chart (Hover Details)
+    const ctx2 = document.getElementById('performanceChart').getContext('2d');
+    const gradients = [
+      ['rgba(37,99,235,0.9)','rgba(37,99,235,0.6)'],
+      ['rgba(219,39,119,0.9)','rgba(219,39,119,0.6)'],
+      ['rgba(217,119,6,0.9)','rgba(217,119,6,0.6)'],
+      ['rgba(5,150,105,0.9)','rgba(5,150,105,0.6)']
+    ];
+    const bgColors = gradients.map(g => {
+      let grad = ctx2.createLinearGradient(0,0,0,400);
+      grad.addColorStop(0,g[0]);
+      grad.addColorStop(1,g[1]);
+      return grad;
+    });
+
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: ['Math', 'Science', 'English', 'History'],
+        datasets: [{
+          label: 'Average Score',
+          data: [72, 68, 80, 75],
+          borderRadius: 14,
+          backgroundColor: bgColors,
+          hoverBackgroundColor: ["#1d4ed8","#be185d","#b45309","#047857"]
+        }]
+      },
+      options: {
+        plugins: {
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                let val = context.raw;
+                if (val < 70) return `❌ Below Avg: ${val}`;
+                if (val >= 70 && val < 80) return `⚠ Needs Improvement: ${val}`;
+                return `⭐ Excellent: ${val}`;
+              }
+            }
+          }
+        },
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          y: { max: 100, beginAtZero: true }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

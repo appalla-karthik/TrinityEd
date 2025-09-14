@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>{% block title %}TrinityEd{% endblock %}</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <style>
+    :root {
+      --dock-offset-left: 0px;
+      --dock-offset-right: 0px;
+    }
+    .dock {
+      border-radius: 20px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .app { width: 70px; height: 70px; position: relative; transition: all cubic-bezier(0.25, 1, 0.5, 1) 200ms; }
+    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease, filter 200ms ease; }
+    .app a { display: block; width: 100%; height: 100%; }
+    .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
+    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
+      transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+      background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: white; white-space: nowrap; pointer-events: none; }
+    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .app::after { content: ""; position: absolute; bottom: -18%; left: 50%; width: 75%; height: 35%; transform: translateX(-50%) scaleY(-1);
+      background: inherit; opacity: 0.18; border-radius: 14px; filter: blur(6px); }
+    .app:hover { width: 95px; height: 95px; margin-top: -35px; }
+    .app:hover + .app { width: 85px; height: 85px; margin-top: -20px; }
+    .app:hover + .app + .app { width: 78px; height: 78px; margin-top: -10px; }
+    .app:has(+ .app:hover){ width: 85px; height: 85px; margin-top: -20px; }
+    .app:has(+ .app + .app:hover){ width: 78px; height: 78px; margin-top: -10px; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0) scale(1); } 30% { transform: translateY(-18px) scale(1.12); } 60% { transform: translateY(6px) scale(0.95); } }
+    .bounce { animation: bounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1); }
+    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 8px; background: white; border-radius: 50%; box-shadow: 0 0 6px rgba(255,255,255,0.7); opacity: 0; transition: opacity 0.3s ease; }
+    .app.active .indicator { opacity: 1; }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="h-screen w-screen text-white flex flex-col justify-between relative overflow-hidden bg-[#0a0f2c]">
+
+  <!-- Page content -->
+  <main class="relative z-10 flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Dock -->
+  <nav id="dock" class="dock m-auto mb-4 relative z-20">
+    <ul class="flex list-none p-0">
+      {% if not user.is_authenticated %}
+        <!-- 🔹 Welcome Dock (Not Logged In) -->
+        <li class="app"><a href="#mission"><img src="{% static 'img/mission.png' %}"/><span class="tooltip">Our Mission</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="#how"><img src="{% static 'img/works.png' %}"/><span class="tooltip">How It Works</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="#mentors"><img src="{% static 'img/mentor.png' %}"/><span class="tooltip">For Mentors</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="#students"><img src="{% static 'img/student.png' %}"/><span class="tooltip">For Students</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="{% url 'login' %}"><img src="{% static 'img/getstarted.png' %}"/><span class="tooltip">Get Started</span></a><div class="indicator"></div></li>
+        
+      {% elif user.is_authenticated and user.profile.role == "student" %}
+        <!-- 🔹 Student Dock -->
+        <li class="app"><a href="{% url 'student_dashboard' %}"><img src="{% static 'img/StudentDashboard.png' %}"/><span class="tooltip">Dashboard</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="{% url 'progress' %}"><img src="{% static 'img/progress.png' %}"/><span class="tooltip">Progress</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="{% url 'counselling' %}"><img src="{% static 'img/counselling.png' %}"/><span class="tooltip">Counselling</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="{% url 'resources' %}"><img src="{% static 'img/resources.png' %}"/><span class="tooltip">Resources</span></a><div class="indicator"></div></li>
+        <li class="app"><a href="{% url 'logout' %}"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+        
+
+      {% elif user.is_authenticated and user.profile.role == "mentor" %}
+        <!-- 🔹 Mentor Dock -->
+        <nav id="dock" class="dock fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+    <ul class="flex list-none p-0 gap-3">
+      <li class="app active">
+        <a href="{% url 'mentor_dashboard'%}">
+          <img src="{% static 'img/mentordashboard.png' %}" alt="Overview"/>
+          <span class="tooltip">Overview</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'attendance' %}">
+          <img src="{% static 'img/attendance.png' %}" alt="Attendance"/>
+          <span class="tooltip">Attendance</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'performance' %}">
+          <img src="{% static 'img/performance.png' %}" alt="Performance"/>
+          <span class="tooltip">Performance</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'fee_status' %}">
+          <img src="{% static 'img/fees.png' %}" alt="Fee Status"/>
+          <span class="tooltip">Fee Status</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'alerts' %}">
+          <img src="{% static 'img/alerts.png' %}" alt="Alerts"/>
+          <span class="tooltip">Alerts</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'logout' %}" onclick="alert('Logged Out')">
+          <img src="{% static 'img/logout.png' %}" alt="Logout"/>
+          <span class="tooltip">Logout</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+    </ul>
+  </nav>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll(".app").forEach(app => {
+        app.addEventListener("click", () => {
+          document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
+          app.classList.add("active");
+          const img = app.querySelector("img");
+          img.classList.add("bounce");
+          img.addEventListener("animationend", () => img.classList.remove("bounce"), { once: true });
+        });
+      });
+    });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

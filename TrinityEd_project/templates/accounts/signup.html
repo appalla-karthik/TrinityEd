@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrinityEd - Signup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Shake effect for errors */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-8 transform transition duration-500 hover:scale-[1.02]">
+    <!-- Header -->
+    <div class="text-center">
+      <h2 class="text-3xl font-extrabold text-gray-900">Create your account</h2>
+      <p class="mt-2 text-sm text-gray-600">Join the Student Success System</p>
+    </div>
+
+    <!-- Form -->
+    <form class="mt-8 space-y-6" method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <!-- Name Fields -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">First Name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.first_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Last Name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.last_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div>
+          <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">Username</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.username.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.email.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Role -->
+        <div>
+          <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700">Role</label>
+          {{ form.role }}
+          {% if form.role.errors %}
+            <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.role.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">Password</label>
+          <div class="relative">
+            {{ form.password1 }}
+            <button type="button" onclick="togglePassword('id_password1','eyeOpen1','eyeClosed1')" 
+              class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
+              <!-- Eye open -->
+              <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <!-- Eye closed -->
+              <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.956 9.956 0 012.522-4.442M9.88 9.88a3 3 0 104.24 4.24" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+              </svg>
+            </button>
+          </div>
+          {% if form.password1.errors %}
+            <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.password1.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+          <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+          <div class="relative">
+            {{ form.password2 }}
+            <button type="button" onclick="togglePassword('id_password2','eyeOpen2','eyeClosed2')" 
+              class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
+              <!-- Eye open -->
+              <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <!-- Eye closed -->
+              <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.956 9.956 0 012.522-4.442M9.88 9.88a3 3 0 104.24 4.24" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+              </svg>
+            </button>
+          </div>
+          {% if form.password2.errors %}
+            <p class="mt-1 text-sm text-red-600 animate-shake">{{ form.password2.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button type="submit" 
+          class="w-full py-3 px-4 rounded-xl text-white font-semibold bg-indigo-600 shadow-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 transition duration-300">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Login Redirect -->
+      <div class="text-center">
+        <p class="text-sm text-gray-600">
+          Already have an account? 
+          <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-800">Sign in here</a>
+        </p>
+      </div>
+    </form>
+  </div>
+
+  <!-- JS for password eye toggle -->
+  <script>
+    function togglePassword(inputId, openId, closedId) {
+      const passwordInput = document.getElementById(inputId);
+      const eyeOpen = document.getElementById(openId);
+      const eyeClosed = document.getElementById(closedId);
+
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeOpen.classList.remove("hidden");
+        eyeClosed.classList.add("hidden");
+      } else {
+        passwordInput.type = "password";
+        eyeOpen.classList.add("hidden");
+        eyeClosed.classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance | TrinityEd</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f4ff, #e6f0ff, #fefefe);
+      background-size: 300% 300%;
+      animation: gradientShift 15s ease infinite;
+      font-family: 'Inter', system-ui, sans-serif;
+      scroll-behavior: smooth;
+      opacity: 0;
+      animation: fadeInBody 1s forwards;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInBody { to { opacity: 1; } }
+    /* Mac Window */
+    .mac-window {
+      width: 90%;
+      margin: 2rem auto;
+      height: 90vh;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .mac-header {
+      display: flex; align-items: center;
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .mac-btn {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      margin-right: 8px;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .red { background:#ef4444; }
+    .yellow { background:#facc15; }
+    .green { background:#22c55e; }
+    .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
+    /* Table & badges */
+    .table-row { transition: all 0.3s ease; cursor: pointer; }
+    .table-row:hover { background: #e0e7ff; transform: scale(1.02); }
+    .badge { padding: 3px 12px; border-radius: 9999px; font-weight: 600; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-yellow { background: #fef9c3; color: #b45309; }
+    .badge-green { background: #d1fae5; color: #047857; }
+    /* Chart box */
+    .chart-box { transition: transform 0.35s ease; border-radius: 18px; }
+    .chart-box:hover { transform: scale(1.05); }
+    /* Student cards */
+    .student-card { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+    .student-card:hover { transform: scale(1.05); box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+    /* Dock styles */
+    .dock {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      border-radius: 20px; padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .app { width: 70px; height: 70px; position: relative; transition: all 200ms; }
+    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease; }
+    .app a { display: block; width: 100%; height: 100%; }
+    .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
+    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
+      transition: 150ms; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: white; white-space: nowrap; }
+    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .app::after { content: ""; position: absolute; bottom: -18%; left: 50%; width: 75%; height: 35%; transform: translateX(-50%) scaleY(-1);
+      background: inherit; opacity: 0.18; border-radius: 14px; filter: blur(6px); }
+    .app:hover { width: 95px; height: 95px; margin-top: -35px; }
+    .app.active .indicator { opacity: 1; }
+    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 8px; background: white; border-radius: 50%; opacity: 0; }
+  </style>
+</head>
+<body class="flex flex-col h-screen">
+
+  <!-- ===== Mac Window (Attendance) ===== -->
+  <div id="macWindow" class="mac-window">
+    
+    <!-- MacOS Style Header -->
+    <div class="mac-header">
+      <span id="btnClose" class="mac-btn red"></span>
+      <span id="btnMinimize" class="mac-btn yellow"></span>
+      <span id="btnMaximize" class="mac-btn green"></span>
+      <span class="mac-title">Attendance Dashboard</span>
+    </div>
+
+    <!-- Window Content -->
+    <main id="macContent" class="flex-1 p-8 overflow-y-auto">
+      <!-- ✅ Attendance page ka pura content yaha same ka same daal diya -->
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">Attendance</h1>
+        <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl shadow-md hover:scale-105 transition">Export CSV</button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
+          <p class="text-gray-500 font-medium">Total Students</p>
+          <p class="text-2xl font-bold text-blue-700">120</p>
+        </div>
+        <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
+          <p class="text-gray-500 font-medium">Average Attendance</p>
+          <p class="text-2xl font-bold text-green-600">78%</p>
+        </div>
+        <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
+          <p class="text-gray-500 font-medium">Students At Risk</p>
+          <p class="text-2xl font-bold text-red-600">15</p>
+        </div>
+      </div>
+
+      <!-- Student Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- Student A -->
+        <div class="student-card bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-6 flex flex-col items-center">
+          <div class="w-24 h-24 relative">
+            <svg class="w-24 h-24 transform -rotate-90">
+              <circle cx="48" cy="48" r="48" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+              <circle cx="48" cy="48" r="48" fill="none" stroke="#2563eb" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="65"/>
+            </svg>
+            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">65%</span>
+          </div>
+          <p class="mt-4 font-medium text-gray-700">Student A</p>
+          <p class="text-gray-500 text-sm">Class 1</p>
+        </div>
+
+        <!-- Student B -->
+        <div class="student-card bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-6 flex flex-col items-center">
+          <div class="w-24 h-24 relative">
+            <svg class="w-24 h-24 transform -rotate-90">
+              <circle cx="48" cy="48" r="48" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+              <circle cx="48" cy="48" r="48" fill="none" stroke="#16a34a" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="85"/>
+            </svg>
+            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">85%</span>
+          </div>
+          <p class="mt-4 font-medium text-gray-700">Student B</p>
+          <p class="text-gray-500 text-sm">Class 1</p>
+        </div>
+
+        <!-- Student C -->
+        <div class="student-card bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-6 flex flex-col items-center">
+          <div class="w-24 h-24 relative">
+            <svg class="w-24 h-24 transform -rotate-90">
+              <circle cx="48" cy="48" r="48" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+              <circle cx="48" cy="48" r="48" fill="none" stroke="#facc15" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="70"/>
+            </svg>
+            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">70%</span>
+          </div>
+          <p class="mt-4 font-medium text-gray-700">Student C</p>
+          <p class="text-gray-500 text-sm">Class 2</p>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="mb-4 flex items-center gap-4">
+        <label class="font-medium text-gray-700">Filter by Class:</label>
+        <select id="classFilter" class="border border-gray-300 rounded-lg p-2">
+          <option value="all">All Classes</option>
+          <option value="Class 1">Class 1</option>
+          <option value="Class 2">Class 2</option>
+        </select>
+      </div>
+
+      <!-- Attendance Table -->
+      <div class="overflow-x-auto bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl">
+        <table class="min-w-full divide-y divide-gray-200" id="attendanceTable">
+          <thead class="bg-blue-50">
+            <tr>
+              <th class="px-6 py-3">#</th>
+              <th class="px-6 py-3">Student Name</th>
+              <th class="px-6 py-3">Class</th>
+              <th class="px-6 py-3">Attendance %</th>
+              <th class="px-6 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="px-6 py-4">1</td>
+              <td class="px-6 py-4 font-medium text-gray-700">Student A</td>
+              <td class="px-6 py-4">Class 1</td>
+              <td class="px-6 py-4">
+                <div class="bg-gray-200 rounded-full h-3 w-full">
+                  <div class="bg-blue-600 h-3 rounded-full" style="width:65%"></div>
+                </div>
+                <span class="text-sm text-gray-600">65%</span>
+              </td>
+              <td class="px-6 py-4"><span class="badge badge-red">At Risk</span></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4">2</td>
+              <td class="px-6 py-4 font-medium text-gray-700">Student B</td>
+              <td class="px-6 py-4">Class 1</td>
+              <td class="px-6 py-4">
+                <div class="bg-gray-200 rounded-full h-3 w-full">
+                  <div class="bg-green-600 h-3 rounded-full" style="width:85%"></div>
+                </div>
+                <span class="text-sm text-gray-600">85%</span>
+              </td>
+              <td class="px-6 py-4"><span class="badge badge-green">Good</span></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4">3</td>
+              <td class="px-6 py-4 font-medium text-gray-700">Student C</td>
+              <td class="px-6 py-4">Class 2</td>
+              <td class="px-6 py-4">
+                <div class="bg-gray-200 rounded-full h-3 w-full">
+                  <div class="bg-yellow-400 h-3 rounded-full" style="width:70%"></div>
+                </div>
+                <span class="text-sm text-gray-600">70%</span>
+              </td>
+              <td class="px-6 py-4"><span class="badge badge-yellow">Average</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Chart -->
+      <div class="mt-8 chart-box p-6 rounded-2xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md" style="height:300px;">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Class Attendance Overview</h3>
+        <canvas id="attendanceChart"></canvas>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== Dock ===== -->
+  <nav id="dock" class="dock">
+    <ul class="flex list-none p-0 gap-3">
+      <li class="app"><a href="{% url 'mentor_dashboard' %}"><img src="{% static 'img/mentordashboard.png' %}" alt="Performance"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
+      <li class="app active"><a href="javascript:void(0)" id="openAttendance"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'logout' %}" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+    </ul>
+  </nav>
+
+  <script>
+    const macWindow = document.getElementById("macWindow");
+    const macContent = document.getElementById("macContent");
+    const btnClose = document.getElementById("btnClose");
+    const btnMinimize = document.getElementById("btnMinimize");
+    const btnMaximize = document.getElementById("btnMaximize");
+    const openAttendance = document.getElementById("openAttendance");
+    let isMaximized = false; // Default to normal state, not maximized
+    let isMinimized = false;
+
+    openAttendance.addEventListener("click", () => {
+      macWindow.classList.remove("hidden");
+    });
+
+    btnClose.addEventListener("click", () => {
+      macWindow.style.display = "none";
+    });
+
+    btnMinimize.addEventListener("click", () => {
+      if (!isMinimized && !isMaximized) {
+        macContent.style.display = "none";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "auto";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      } else if (isMinimized) {
+        macContent.style.display = "block";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "90vh";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      }
+      isMinimized = !isMinimized;
+    });
+
+    btnMaximize.addEventListener("click", () => {
+      if (!isMaximized) {
+        macWindow.style.position = "fixed";
+        macWindow.style.top = "0";
+        macWindow.style.left = "0";
+        macWindow.style.width = "100%";
+        macWindow.style.height = "100vh";
+        macWindow.style.margin = "0";
+        macWindow.style.borderRadius = "0";
+      } else {
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "90vh";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      }
+      isMaximized = !isMaximized;
+      if (isMaximized) isMinimized = false; // Reset minimized state when maximizing
+    });
+
+    // Dock bounce effect
+    document.querySelectorAll(".app").forEach(app => {
+      app.addEventListener("click", () => {
+        document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
+        app.classList.add("active");
+        const img = app.querySelector("img");
+        img.classList.add("bounce");
+        img.addEventListener("animationend", () => img.classList.remove("bounce"), { once: true });
+      });
+    });
+
+    // Animate student circular bars
+    document.querySelectorAll('.attendance-circle').forEach(circle => {
+      const percent = circle.getAttribute('data-percent');
+      const offset = 301 - (301 * percent / 100);
+      setTimeout(() => {
+        circle.style.transition = 'stroke-dashoffset 1.5s ease';
+        circle.style.strokeDashoffset = offset;
+      }, 300);
+    });
+
+    // Chart.js
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0,0,0,300);
+    gradient.addColorStop(0,'rgba(37,99,235,0.35)');
+    gradient.addColorStop(1,'rgba(37,99,235,0.05)');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Class 1','Class 2','Class 3','Class 4'],
+        datasets: [{
+          label: 'Average Attendance %',
+          data: [78, 70, 85, 90],
+          backgroundColor: gradient,
+          borderColor: '#2563eb',
+          borderWidth: 2,
+          borderRadius: 12,
+          barThickness: 30,
+          hoverBackgroundColor: '#1d4ed8'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, max: 100, ticks: { stepSize: 10 } },
+          x: { grid: { display: false } }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; }
+            }
+          }
+        },
+        animation: { duration: 1500, easing: 'easeOutQuart' }
+      }
+    });
+
+    // Export CSV
+    document.getElementById('exportBtn').addEventListener('click', function(){
+      let table = document.getElementById('attendanceTable');
+      let rows = Array.from(table.querySelectorAll('tr'));
+      let csvContent = rows.map(row => {
+        let cols = Array.from(row.querySelectorAll('th, td'));
+        return cols.map(col => col.innerText.replace(/,/g,"")).join(",");
+      }).join("\n");
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'attendance.csv');
+      link.click();
+    });
+
+    // Filter by class
+    document.getElementById('classFilter').addEventListener('change', function(){
+      const filter = this.value;
+      document.querySelectorAll('#attendanceTable tbody tr').forEach(row => {
+        const className = row.cells[2].innerText;
+        row.style.display = (filter === 'all' || filter === className) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

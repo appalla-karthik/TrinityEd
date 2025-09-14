@@ -1,0 +1,351 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alerts | TrinityEd</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+/* ===== Body Animation ===== */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, #f0f4ff, #e6f0ff, #fefefe);
+  background-size: 300% 300%;
+  animation: gradientShift 15s ease infinite, fadeInBody 1s forwards;
+  min-height: 100vh;
+  overflow-x: hidden;
+  opacity: 0;
+  position: relative; /* Ensure body positioning for dock context */
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes fadeInBody { to { opacity: 1; } }
+
+/* ===== Mac Window ===== */
+#alertWindow {
+  width: 90%;
+  margin: 2rem auto;
+  height: 90vh;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+#alertHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #ddd;
+  background: #f9fafb;
+}
+#alertHeader button {
+  width: 14px; height: 14px; border-radius: 50%;
+  cursor: pointer; border: none;
+}
+#btnClose { background: #ef4444; }
+#btnMinimize { background: #facc15; }
+#btnMaximize { background: #22c55e; }
+
+/* ===== Alerts Cards ===== */
+.alert-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(14px);
+  border-radius:18px;
+  padding:1.5rem;
+  display:flex;
+  gap:1rem;
+  align-items:center;
+  box-shadow:0 12px 30px rgba(0,0,0,0.08);
+  transition: all 0.4s ease, transform 0.3s ease;
+  position:relative;
+  opacity:0;
+  transform:translateY(20px);
+  animation: fadeInUp 0.6s forwards;
+  border-left:5px solid transparent;
+}
+.alert-card.info { border-left-color:#3b82f6; }
+.alert-card.warning { border-left-color:#f97316; }
+.alert-card.danger { border-left-color:#ef4444; }
+.alert-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.15), 0 0 20px rgba(59,130,246,0.3);
+}
+.alert-card.info:hover .alert-icon { animation: pulseIconBlue 1.2s infinite; }
+.alert-card.warning:hover .alert-icon { animation: pulseIconOrange 1.2s infinite; }
+.alert-card.danger:hover .alert-icon { animation: pulseIconRed 1.2s infinite; }
+.alert-card.danger:hover { animation: pulseDanger 1s infinite; }
+
+@keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
+@keyframes pulseDanger {
+  0%,100% { transform:translateY(-6px) scale(1.02); box-shadow:0 18px 40px rgba(239,68,68,0.15); }
+  50% { transform:translateY(-8px) scale(1.05); box-shadow:0 22px 50px rgba(239,68,68,0.25); }
+}
+@keyframes pulseIconBlue { 0%,100%{ transform: scale(1) rotate(-10deg); } 50%{ transform: scale(1.2) rotate(-5deg); } }
+@keyframes pulseIconOrange { 0%,100%{ transform: scale(1) rotate(-10deg); } 50%{ transform: scale(1.2) rotate(-5deg); } }
+@keyframes pulseIconRed { 0%,100%{ transform: scale(1) rotate(-10deg); } 50%{ transform: scale(1.3) rotate(-5deg); } }
+
+/* Alert contents */
+.alert-icon { font-size:2rem; transition:transform 0.3s ease; }
+.alert-card:hover .alert-icon { transform:scale(1.2) rotate(-10deg); }
+.badge { font-size:0.75rem; font-weight:600; padding:0.25rem 0.6rem; border-radius:9999px; color:white; display:inline-block; margin-top:0.5rem; }
+.badge.info { background:linear-gradient(to right,#3b82f6,#60a5fa); }
+.badge.warning { background:linear-gradient(to right,#f97316,#fb923c); }
+.badge.danger { background:linear-gradient(to right,#ef4444,#f87171); }
+.timestamp { font-size:0.7rem; color:#6b7280; margin-top:0.2rem; }
+
+/* Buttons */
+.btn-read { position:absolute; top:1rem; right:1rem; font-size:0.75rem; padding:0.3rem 0.6rem; border-radius:8px; background:#2563eb; color:white; cursor:pointer; transition:all 0.3s ease; }
+.btn-read:hover { background:#1d4ed8; transform:scale(1.05); }
+
+/* Search bar + header */
+.sticky-header h1 { font-size:1.5rem; font-weight:600; color:#374151; }
+#alertSearch { border:1px solid #d1d5db; border-radius:8px; padding:0.4rem 0.8rem; flex:1; outline:none; transition:border 0.2s; }
+#alertSearch:focus { border-color:#2563eb; }
+#markAllRead { background:#2563eb; color:white; padding:0.4rem 1rem; border-radius:8px; font-size:0.85rem; font-weight:500; transition:all 0.2s; }
+#markAllRead:hover { background:#1d4ed8; }
+
+/* ===== Dock ===== */
+.dock {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display:flex; gap:10px; padding:10px 20px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(18px) saturate(150%);
+  border-radius: 20px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+  z-index:60;
+}
+.app { width:70px; height:70px; position:relative; transition: all 0.2s ease; }
+.app img { width:100%; height:100%; border-radius:14px; transition: all 0.2s ease; }
+.app:hover img { transform: translateY(-6px); filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)); }
+.tooltip { position:absolute; top:-40px; left:50%; transform:translateX(-50%); opacity:0; background:rgba(0,0,0,0.7); padding:5px 10px; border-radius:6px; color:white; font-size:12px; font-weight:500; white-space:nowrap; transition:0.2s; pointer-events:none; }
+.app:hover .tooltip { opacity:1; transform:translateX(-50%) translateY(-6px); }
+.indicator { position:absolute; bottom:-8px; left:50%; width:8px; height:8px; background:white; border-radius:50%; box-shadow:0 0 6px rgba(255,255,255,0.7); opacity:0; transition:0.3s; }
+.app.active .indicator { opacity:1; }
+
+/* ===== Fade Out Animation ===== */
+.fade-out { opacity:0 !important; transform: translateX(50px) scale(0.95); transition: all 0.4s ease; }
+
+/* ===== Toast ===== */
+#toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%) scale(0.9); background:linear-gradient(135deg,#3b82f6,#22c55e); color:white; padding:12px 24px; border-radius:12px; font-size:0.95rem; font-weight:600; opacity:0; transition: all 0.4s cubic-bezier(0.25,1.5,0.5,1); box-shadow:0 6px 20px rgba(0,0,0,0.25); z-index:70; pointer-events:none; background-size:200% 200%; animation: gradientToast 3s ease infinite; }
+#toast.show { opacity:1; transform:translateX(-50%) scale(1); animation:bounceToast 0.6s, gradientToast 3s ease infinite; pointer-events:auto; }
+@keyframes gradientToast { 0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;} }
+#toast:hover { transform:translateX(-50%) scale(1.08); box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 20px rgba(59,130,246,0.6); }
+@keyframes bounceToast { 0%{transform:translateX(-50%) scale(0.5);opacity:0;}60%{transform:translateX(-50%) scale(1.2);opacity:1;}80%{transform:translateX(-50%) scale(0.95);}100%{transform:translateX(-50%) scale(1);} }
+</style>
+</head>
+<body>
+
+<!-- Mac Window -->
+<div id="alertWindow">
+  <div id="alertHeader">
+    <button id="btnClose"></button>
+    <button id="btnMinimize"></button>
+    <button id="btnMaximize"></button>
+    <span class="ml-3 font-medium text-gray-700">Alerts</span>
+  </div>
+
+  <main class="flex-1 p-6 overflow-y-auto">
+    <div class="sticky-header mb-4">
+      <h1>Alerts</h1>
+      <div class="flex gap-3 mt-3">
+        <input type="text" id="alertSearch" placeholder="Search alerts...">
+        <button id="markAllRead">Mark All as Read</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="alertsContainer">
+      {% for alert in alerts %}
+      <div class="alert-card {{ alert.type }}" id="alert-{{ alert.id }}" style="animation-delay: {{ forloop.counter0|add:'0.1'|floatformat:1 }}s;">
+        <span class="material-icons alert-icon {% if alert.type == 'info' %}text-blue-500{% elif alert.type == 'warning' %}text-orange-500{% else %}text-red-500{% endif %}">{{ alert.icon }}</span>
+        <div class="flex-1">
+          <p class="font-semibold text-gray-800">{{ alert.title }}</p>
+          <p class="text-gray-600 text-sm mt-1">{{ alert.description }}</p>
+          <span class="badge {% if alert.type == 'info' %}info{% elif alert.type == 'warning' %}warning{% else %}danger{% endif %}">{{ alert.type|title }}</span>
+          <div class="timestamp">{{ alert.timestamp|default:"Just now" }}</div>
+        </div>
+        <button class="btn-read" data-id="{{ alert.id }}">Mark as Read</button>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast">Alert marked as read!</div>
+
+<!-- Dock -->
+<nav class="dock">
+  <ul class="flex gap-3">
+    <li class="app"><a href="{% url 'mentor_dashboard'%}"><img src="{% static 'img/mentordashboard.png' %}" alt="Overview"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'attendance' %}"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
+    <li class="app active"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
+    <li class="app"><a href="{% url 'logout' %}"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+  </ul>
+</nav>
+
+<script>
+/* ===== Mac Buttons ===== */
+const alertWindow = document.getElementById("alertWindow");
+const btnClose = document.getElementById("btnClose");
+const btnMinimize = document.getElementById("btnMinimize");
+const btnMaximize = document.getElementById("btnMaximize");
+let isMax = false, isMin = false;
+
+btnClose.onclick = () => alertWindow.style.display = "none";
+
+btnMinimize.onclick = () => {
+  if (!isMin) {
+    // If maximized, restore to normal state first (with content visible)
+    if (isMax) {
+      alertWindow.style.position = "relative";
+      alertWindow.style.width = "90%";
+      alertWindow.style.height = "90vh";
+      alertWindow.style.margin = "2rem auto";
+      alertWindow.style.borderRadius = "14px";
+      alertWindow.querySelector("main").style.display = "block"; // Ensure content is visible
+      isMax = false;
+      return; // Don't minimize further, just restore to normal
+    }
+    // Only hide content if starting from normal state
+    alertWindow.querySelector("main").style.display = "none";
+    alertWindow.style.height = "60px"; // Fixed minimum height to keep window visible above dock
+    alertWindow.style.margin = "2rem auto";
+  } else {
+    // Restore from minimized state
+    alertWindow.querySelector("main").style.display = "block";
+    alertWindow.style.height = "90vh";
+    alertWindow.style.margin = "2rem auto";
+  }
+  isMin = !isMin;
+};
+
+btnMaximize.onclick = () => {
+  if (!isMax) {
+    alertWindow.style.position = "fixed";
+    alertWindow.style.top = "0";
+    alertWindow.style.left = "0";
+    alertWindow.style.width = "100%";
+    alertWindow.style.height = "100vh";
+    alertWindow.style.margin = "0";
+    alertWindow.style.borderRadius = "0";
+  } else {
+    alertWindow.style.position = "relative";
+    alertWindow.style.width = "90%";
+    alertWindow.style.height = "90vh";
+    alertWindow.style.margin = "2rem auto";
+    alertWindow.style.borderRadius = "14px";
+  }
+  alertWindow.querySelector("main").style.display = "block";
+  isMax = !isMax;
+  if (isMax) isMin = false;
+};
+
+/* ===== Toast Utility ===== */
+const toast = document.getElementById("toast");
+function showToast(message){
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2000);
+}
+
+/* ===== Mark as Read ===== */
+document.querySelectorAll(".btn-read").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const alertId = btn.getAttribute("data-id");
+    const alertCard = document.getElementById("alert-" + alertId);
+    if(alertCard){
+      alertCard.classList.add("fade-out");
+      setTimeout(()=>alertCard.remove(), 400);
+      showToast("Alert marked as read!");
+    }
+  });
+});
+
+/* ===== Mark All as Read ===== */
+document.getElementById("markAllRead").addEventListener("click", ()=>{
+  const alerts = document.querySelectorAll(".alert-card");
+  alerts.forEach((card, index)=>{
+    setTimeout(()=>{
+      card.classList.add("fade-out");
+      setTimeout(()=>card.remove(), 400);
+    }, index * 150);
+  });
+  showToast("All alerts marked as read!");
+
+  // Confetti
+  for(let i=0;i<50;i++){
+    const c = document.createElement('div');
+    c.style.width='6px'; c.style.height='6px';
+    c.style.background=['#3b82f6','#ef4444','#f97316'][Math.floor(Math.random()*3)];
+    c.style.position='fixed'; c.style.top='0'; c.style.left=Math.random()*window.innerWidth+'px';
+    c.style.opacity='0.8'; c.style.borderRadius='50%'; c.style.zIndex='9999';
+    document.body.appendChild(c);
+    const fall = Math.random()*3+2;
+    const interval = setInterval(()=>{
+      let top = parseFloat(c.style.top);
+      if(top>window.innerHeight){ c.remove(); clearInterval(interval); }
+      else c.style.top = top + fall + 'px';
+    },20);
+  }
+});
+
+/* ===== Auto Notifications ===== */
+const alertsContainer = document.getElementById("alertsContainer");
+let nextAlertId = {{ alerts|length }} + 1;
+
+// Sample alert data
+const sampleAlerts = [
+  { type: 'info', icon: 'info', title: 'New Info Alert', description: 'This is an informational alert.' },
+  { type: 'warning', icon: 'warning', title: 'Warning Alert', description: 'This is a warning alert.' },
+  { type: 'danger', icon: 'dangerous', title: 'Danger Alert', description: 'This is a critical alert!' }
+];
+
+// Function to create a new alert card
+function createAlert(alert){
+  const card = document.createElement('div');
+  card.className = `alert-card ${alert.type}`;
+  card.id = `alert-${nextAlertId}`;
+  card.style.animationDelay = '0.1s';
+  card.innerHTML = `
+    <span class="material-icons alert-icon ${alert.type==='info'?'text-blue-500':alert.type==='warning'?'text-orange-500':'text-red-500'}">${alert.icon}</span>
+    <div class="flex-1">
+      <p class="font-semibold text-gray-800">${alert.title}</p>
+      <p class="text-gray-600 text-sm mt-1">${alert.description}</p>
+      <span class="badge ${alert.type}">${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}</span>
+      <div class="timestamp">Just now</div>
+    </div>
+    <button class="btn-read" data-id="${nextAlertId}">Mark as Read</button>
+  `;
+  alertsContainer.prepend(card);
+
+  // Add event for new button
+  card.querySelector(".btn-read").addEventListener("click", ()=>{
+    card.classList.add("fade-out");
+    setTimeout(()=>card.remove(),400);
+    showToast("Alert marked as read!");
+  });
+
+  showToast("New alert received!");
+  nextAlertId++;
+}
+
+// Auto-generate new alert every 7-12 seconds
+setInterval(()=>{
+  const randomAlert = sampleAlerts[Math.floor(Math.random()*sampleAlerts.length)];
+  createAlert(randomAlert);
+}, Math.random()*5000 + 7000);
+</script>
+
+</body>
+</html>

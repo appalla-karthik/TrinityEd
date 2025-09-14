@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counselling | TrinityEd</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff); background-size: 300% 300%; animation: gradientShift 12s ease infinite; }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
+    .card { background: rgba(255,255,255,0.9); border-radius: 18px; backdrop-filter: blur(12px); border: 1px solid rgba(37,99,235,0.15); padding: 20px; transition: all 0.3s ease; }
+    .card:hover { transform: scale(1.02); box-shadow: 0 12px 28px rgba(37,99,235,0.25); }
+
+    /* ===== Mac Dock Styling ===== */
+    .dock {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 20px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .app { width: 70px; height: 70px; position: relative; transition: all 0.3s ease; }
+    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease, filter 200ms ease; }
+    .app:hover img { transform: translateY(-4px); filter: drop-shadow(0 0 10px rgba(0,0,0,0.3)); }
+    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
+      transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+      background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; color: white; white-space: nowrap; }
+    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 8px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s ease; }
+    .app.active .indicator { opacity: 1; }
+  </style>
+</head>
+<body class="font-sans p-8">
+
+  <h1 class="text-3xl font-bold text-gray-700 mb-6">💬 Counselling & Mentorship</h1>
+
+  <!-- Sessions -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="card">
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">Upcoming Sessions</h3>
+      <ul class="space-y-3">
+        <li class="p-3 bg-blue-50 rounded-lg flex justify-between">
+          <span>📘 Academic Guidance - Dr. Smith</span> 
+          <span class="text-sm text-gray-500">Sep 18, 5:00 PM</span>
+        </li>
+        <li class="p-3 bg-blue-50 rounded-lg flex justify-between">
+          <span>🧠 Stress Management - Ms. Patel</span> 
+          <span class="text-sm text-gray-500">Sep 20, 4:00 PM</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Book Slot -->
+    <div class="card">
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">Book a Session</h3>
+      <form class="space-y-4">
+        <input type="text" placeholder="Your Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <input type="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <select class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option>Choose Mentor</option>
+          <option>Dr. Smith</option>
+          <option>Ms. Patel</option>
+        </select>
+        <input type="datetime-local" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition">Book</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mac Dock -->
+  <nav class="dock z-50 mt-10">
+    <ul class="flex gap-3">
+      <li class="app">
+        <a href="{% url 'student_dashboard' %}">
+          <img src="{% static 'img/StudentDashboard.png' %}" alt="Dashboard"/>
+          <span class="tooltip">Dashboard</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'progress' %}">
+          <img src="{% static 'img/progress.png' %}" alt="Progress"/>
+          <span class="tooltip">Progress</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app active">
+        <a href="{% url 'counselling' %}">
+          <img src="{% static 'img/counselling.png' %}" alt="Counselling"/>
+          <span class="tooltip">Counselling</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'resources' %}">
+          <img src="{% static 'img/resources.png' %}" alt="Resources"/>
+          <span class="tooltip">Resources</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+      <li class="app">
+        <a href="{% url 'logout' %}" onclick="alert('Logged Out')">
+          <img src="{% static 'img/logout.png' %}" alt="Logout"/>
+          <span class="tooltip">Logout</span>
+        </a>
+        <div class="indicator"></div>
+      </li>
+    </ul>
+  </nav>
+
+</body>
+</html>
