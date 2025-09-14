@@ -18,15 +18,22 @@
       --dock-offset-left: 0px;
       --dock-offset-right: 0px;
     }
+    
     .dock {
-      border-radius: 20px;
-      padding: 8px 14px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(18px) saturate(150%);
-      -webkit-backdrop-filter: blur(18px) saturate(150%);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-    }
+  position: fixed;
+  
+  
+  border-radius: 20px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 1000; /* Increase z-index to ensure it stays on top */
+  opacity: 1; /* Ensure initial visibility */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
     .app { width: 70px; height: 70px; position: relative; transition: all cubic-bezier(0.25, 1, 0.5, 1) 200ms; }
     .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease, filter 200ms ease; }
     .app a { display: block; width: 100%; height: 100%; }
@@ -51,84 +58,46 @@
 
   {% block extra_head %}{% endblock %}
 </head>
-<body class="h-screen w-screen text-white flex flex-col justify-between relative overflow-hidden bg-[#0a0f2c]">
-
+<body class="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; overflow-x: hidden; overflow-y: auto; flex flex-col justify-between relative">
   <!-- Page content -->
-  <main class="relative z-10 flex-1">
+  <main class="relative z-10 ">
     {% block content %}{% endblock %}
   </main>
 
   <!-- Dock -->
-  <nav id="dock" class="dock m-auto mb-4 relative z-20">
-    <ul class="flex list-none p-0">
-      {% if not user.is_authenticated %}
-        <!-- 🔹 Welcome Dock (Not Logged In) -->
-        <li class="app"><a href="#mission"><img src="{% static 'img/mission.png' %}"/><span class="tooltip">Our Mission</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="#how"><img src="{% static 'img/works.png' %}"/><span class="tooltip">How It Works</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="#mentors"><img src="{% static 'img/mentor.png' %}"/><span class="tooltip">For Mentors</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="#students"><img src="{% static 'img/student.png' %}"/><span class="tooltip">For Students</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="{% url 'login' %}"><img src="{% static 'img/getstarted.png' %}"/><span class="tooltip">Get Started</span></a><div class="indicator"></div></li>
-        
-      {% elif user.is_authenticated and user.profile.role == "student" %}
-        <!-- 🔹 Student Dock -->
-        <li class="app"><a href="{% url 'student_dashboard' %}"><img src="{% static 'img/StudentDashboard.png' %}"/><span class="tooltip">Dashboard</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="{% url 'progress' %}"><img src="{% static 'img/progress.png' %}"/><span class="tooltip">Progress</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="{% url 'counselling' %}"><img src="{% static 'img/counselling.png' %}"/><span class="tooltip">Counselling</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="{% url 'resources' %}"><img src="{% static 'img/resources.png' %}"/><span class="tooltip">Resources</span></a><div class="indicator"></div></li>
-        <li class="app"><a href="{% url 'logout' %}"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
-        
-
-      {% elif user.is_authenticated and user.profile.role == "mentor" %}
-        <!-- 🔹 Mentor Dock -->
-        <nav id="dock" class="dock fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-    <ul class="flex list-none p-0 gap-3">
-      <li class="app active">
-        <a href="{% url 'mentor_dashboard'%}">
-          <img src="{% static 'img/mentordashboard.png' %}" alt="Overview"/>
-          <span class="tooltip">Overview</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'attendance' %}">
-          <img src="{% static 'img/attendance.png' %}" alt="Attendance"/>
-          <span class="tooltip">Attendance</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'performance' %}">
-          <img src="{% static 'img/performance.png' %}" alt="Performance"/>
-          <span class="tooltip">Performance</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'fee_status' %}">
-          <img src="{% static 'img/fees.png' %}" alt="Fee Status"/>
-          <span class="tooltip">Fee Status</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'alerts' %}">
-          <img src="{% static 'img/alerts.png' %}" alt="Alerts"/>
-          <span class="tooltip">Alerts</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'logout' %}" onclick="alert('Logged Out')">
-          <img src="{% static 'img/logout.png' %}" alt="Logout"/>
-          <span class="tooltip">Logout</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-    </ul>
-  </nav>
-  {% endif %}
-    </ul>
-  </nav>
+  <!-- In base.html, within the <nav id="dock"> section -->
+<nav id="dock" class="dock fixed  bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+  <ul class="flex list-none p-0">
+    {% if not user.is_authenticated %}
+      <!-- 🔹 Welcome Dock (Not Logged In) -->
+      <li class="app"><a href="#mission"><img src="{% static 'img/mission.png' %}"/><span class="tooltip">Our Mission</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="#how"><img src="{% static 'img/works.png' %}"/><span class="tooltip">How It Works</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="#mentors"><img src="{% static 'img/mentor.png' %}"/><span class="tooltip">For Mentors</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="#students"><img src="{% static 'img/student.png' %}"/><span class="tooltip">For Students</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'login' %}"><img src="{% static 'img/getstarted.png' %}"/><span class="tooltip">Get Started</span></a><div class="indicator"></div></li>
+    {% elif user.is_authenticated and user.role == "student" %}
+      <!-- 🔹 Student Dock -->
+      <li class="app"><a href="{% url 'student_dashboard' %}"><img src="{% static 'img/StudentDashboard.png' %}" /><span class="tooltip">Dashboard</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'progress' %}"><img src="{% static 'img/progress.png' %}"/><span class="tooltip">Progress</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'counselling' %}"><img src="{% static 'img/counselling.png' %}"/><span class="tooltip">Counselling</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'resources' %}"><img src="{% static 'img/resources.png' %}"/><span class="tooltip">Resources</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'logout' %}"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+    
+      {% elif user.is_authenticated and user.role == "mentor" %}
+      <!-- 🔹 Mentor Dock -->
+      <li class="app"><a href="{% url 'mentor_dashboard' %}"><img src="{% static 'img/mentordashboard.png' %}"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'attendance' %}"><img src="{% static 'img/attendance.png' %}"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'logout' %}" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+    {% elif user.is_authenticated and user.role == "admin" %}
+      <!-- 🔹 Admin Dock (Add admin-specific links as needed) -->
+      <li class="app"><a href="{% url 'admin_dashboard' %}"><img src="{% static 'img/admin.png' %}"/><span class="tooltip">Admin Dashboard</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'logout' %}" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+    {% endif %}
+  </ul>
+</nav>
 
   <!-- Scripts -->
   <script>

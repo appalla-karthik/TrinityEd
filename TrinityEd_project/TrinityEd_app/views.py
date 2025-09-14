@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from datetime import date, timedelta
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -102,35 +103,37 @@ def mark_alert_read(request):
 
 
 # Student Dashboard
+@login_required
 def student(request):
-    # Dummy graph data
+    user = request.user
+
     attendance_weeks = ["Week 1", "Week 2", "Week 3", "Week 4"]
-    attendance_values = [85, 78, 90, 70]
+    attendance_values = [85, 78, 90, 70] if user.is_student else [0, 0, 0, 0]
+    latest_attendance = attendance_values[-1] if attendance_values else 0
 
     score_tests = ["Test 1", "Test 2", "Test 3"]
-    score_values = [75, 82, 68]
+    score_values = [75, 82, 68] if user.is_student else [0, 0, 0]
+    avg_score = sum(score_values) / len(score_values) if score_values else 0
 
     context = {
-        "student_name": "Rudra Singh",
-        "attendance": 75,   # percentage
-        "avg_score": 68,    # average exam score %
-        "fee_status": "Partial",  # can be Paid / Partial / Pending
-        "dropout_risk": "Medium", # Low / Medium / High
-
-        # Graph Data
-        "attendance_weeks": json.dumps(attendance_weeks),
+        "student_name": user.get_full_name() or user.username,
+        "attendance": latest_attendance,
+        "avg_score": round(avg_score, 2),
+        "fee_status": "Partial",
+        "dropout_risk": "Medium",
+        "role": user.role,
+        "attendance_weeks": json.dumps(attendance_weeks),  # Ensure proper JSON
         "attendance_values": json.dumps(attendance_values),
         "score_tests": json.dumps(score_tests),
         "score_values": json.dumps(score_values),
-
-        # Mentor messages
         "messages": [
-            "⚠️ Your attendance dropped below 70%. Please contact your mentor.",
-            "✅ Good improvement in Science this week!"
+            f"⚠️ Your attendance dropped below {latest_attendance}%. Please contact your mentor." if latest_attendance < 80 and user.is_student else "",
+            "✅ Good improvement in Science this week!" if score_values[-1] > 70 and user.is_student else ""
         ]
     }
-    return render(request, "student.html", context)
+    context["messages"] = [msg for msg in context["messages"] if msg]
 
+    return render(request, "student.html", context)
 
 # Progress Page
 def progress(request):

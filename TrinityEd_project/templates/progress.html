@@ -1,10 +1,9 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Progress | TrinityEd</title>
+
+{% block title %}Progress | TrinityEd{% endblock %}
+
+{% block extra_head %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -27,147 +26,85 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .card:hover { transform: scale(1.02); box-shadow: 0 12px 32px rgba(37,99,235,0.25); }
-
-    /* Dock */
-    .dock {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-radius: 20px;
-      padding: 8px 14px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(18px) saturate(150%);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-    }
-    .app { width: 70px; height: 70px; position: relative; transition: all cubic-bezier(0.25, 1, 0.5, 1) 200ms; }
-    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease, filter 200ms ease; }
-    .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
-    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
-      transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
-      background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; color: white; }
-    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
-    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-      width: 8px; height: 8px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s ease; }
-    .app.active .indicator { opacity: 1; }
   </style>
-</head>
-<body class="font-sans p-8">
+{% endblock %}
 
-  <h1 class="text-3xl font-bold text-gray-700 mb-6">📊 Progress Overview</h1>
+{% block content %}
+  <main class=" p-8 animate-fadeIn pb-24">
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <h1 class="text-3xl font-bold text-gray-700 mb-6">📊 Progress Overview</h1>
 
-    <!-- Attendance Trend -->
-    <div class="card">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">Weekly Attendance</h3>
-      <canvas id="attendanceChart"></canvas>
-    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-    <!-- Subject Scores -->
-    <div class="card">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">Subject Performance</h3>
-      <canvas id="performanceChart"></canvas>
-    </div>
+      <!-- Attendance Trend -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Weekly Attendance</h3>
+        <canvas id="attendanceChart"></canvas>
+      </div>
 
-    <!-- Risk Score -->
-    <div class="card lg:col-span-2">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">Dropout Risk Prediction</h3>
-      <div class="flex items-center gap-6">
-        <div class="w-40 h-40 relative">
-          <canvas id="riskChart"></canvas>
+      <!-- Subject Scores -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Subject Performance</h3>
+        <canvas id="performanceChart"></canvas>
+      </div>
+
+      <!-- Risk Score -->
+      <div class="card lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Dropout Risk Prediction</h3>
+        <div class="flex items-center gap-6">
+          <div class="w-40 h-40 relative">
+            <canvas id="riskChart"></canvas>
+          </div>
+          <p class="text-lg text-gray-600">
+            Based on your recent attendance & performance, your current 
+            <span class="font-bold text-blue-600">Risk Level is Low (15%)</span>. Keep it up! 🎉
+          </p>
         </div>
-        <p class="text-lg text-gray-600">
-          Based on your recent attendance & performance, your current 
-          <span class="font-bold text-blue-600">Risk Level is Low (15%)</span>. Keep it up! 🎉
+      </div>
+
+      <!-- GPA Progress -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Overall GPA Progress</h3>
+        <div class="w-40 h-40 mx-auto">
+          <canvas id="gpaChart"></canvas>
+        </div>
+        <p class="mt-3 text-center text-gray-600">Your GPA: <span class="font-bold text-green-600">3.6 / 4.0</span></p>
+      </div>
+
+      <!-- Risk Radar -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">📡 Risk Radar</h3>
+        <canvas id="riskRadar"></canvas>
+        <p class="mt-3 text-center text-gray-600 text-sm">
+          Visualizing your status across <span class="font-semibold text-blue-600">Attendance, Fees, and Performance</span>
         </p>
       </div>
-    </div>
 
-    <!-- GPA Progress -->
-    <div class="card">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">Overall GPA Progress</h3>
-      <div class="w-40 h-40 mx-auto">
-        <canvas id="gpaChart"></canvas>
+      <!-- Achievements -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">🏅 Achievements</h3>
+        <ul class="list-disc pl-6 text-gray-600 space-y-2">
+          <li>Top 10% in Science Olympiad</li>
+          <li>Perfect Attendance in August</li>
+          <li>Improved Math score by 15%</li>
+        </ul>
       </div>
-      <p class="mt-3 text-center text-gray-600">Your GPA: <span class="font-bold text-green-600">3.6 / 4.0</span></p>
+
+      <!-- Suggestions -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">💡 Improvement Suggestions</h3>
+        <ul class="space-y-2 text-gray-600">
+          <li>📘 Revise Algebra before next test</li>
+          <li>🧪 Join extra Science practice sessions</li>
+          <li>📖 Read at least 15 mins daily for English</li>
+        </ul>
+      </div>
+
     </div>
+  </main>
+{% endblock %}
 
-   <!-- Risk Radar -->
-<div class="card">
-  <h3 class="text-lg font-semibold mb-4 text-gray-700">📡 Risk Radar</h3>
-  <canvas id="riskRadar"></canvas>
-  <p class="mt-3 text-center text-gray-600 text-sm">
-    Visualizing your status across <span class="font-semibold text-blue-600">Attendance, Fees, and Performance</span>
-  </p>
-</div>
-
-
-
-    <!-- Achievements -->
-    <div class="card">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">🏅 Achievements</h3>
-      <ul class="list-disc pl-6 text-gray-600 space-y-2">
-        <li>Top 10% in Science Olympiad</li>
-        <li>Perfect Attendance in August</li>
-        <li>Improved Math score by 15%</li>
-      </ul>
-    </div>
-
-    <!-- Suggestions -->
-    <div class="card">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">💡 Improvement Suggestions</h3>
-      <ul class="space-y-2 text-gray-600">
-        <li>📘 Revise Algebra before next test</li>
-        <li>🧪 Join extra Science practice sessions</li>
-        <li>📖 Read at least 15 mins daily for English</li>
-      </ul>
-    </div>
-
-  </div>
-
-  <!-- Dock -->
-  <nav class="dock z-50 mt-10">
-    <ul class="flex gap-3">
-      <li class="app">
-        <a href="{% url 'student_dashboard' %}">
-          <img src="{% static 'img/StudentDashboard.png' %}" alt="Dashboard"/>
-          <span class="tooltip">Dashboard</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app active">
-        <a href="{% url 'progress' %}">
-          <img src="{% static 'img/progress.png' %}" alt="Progress"/>
-          <span class="tooltip">Progress</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'counselling' %}">
-          <img src="{% static 'img/counselling.png' %}" alt="Counselling"/>
-          <span class="tooltip">Counselling</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'resources' %}">
-          <img src="{% static 'img/resources.png' %}" alt="Resources"/>
-          <span class="tooltip">Resources</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'logout' %}" onclick="alert('Logged Out')">
-          <img src="{% static 'img/logout.png' %}" alt="Logout"/>
-          <span class="tooltip">Logout</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-    </ul>
-  </nav>
-
+{% block extra_js %}
   <script>
     // Attendance Chart
     new Chart(document.getElementById('attendanceChart'), {
@@ -196,43 +133,39 @@
       options: { cutout: '70%', plugins: { legend: { display: false } } }
     });
 
-    // GPA Progress (circular chart)
+    // GPA Progress
     new Chart(document.getElementById('gpaChart'), {
       type: 'doughnut',
       data: { datasets: [{ data: [90,10], backgroundColor: ['#16a34a','#e5e7eb'] }] },
       options: { cutout: '75%', plugins: { legend: { display: false } } }
     });
 
-       // Risk Radar Chart (updated: only 3 categories)
-  new Chart(document.getElementById('riskRadar'), {
-    type: 'radar',
-    data: {
-      labels: ['Attendance', 'Fees', 'Performance'],
-      datasets: [{
-        label: 'Student Score',
-        data: [85, 90, 78], // example values
-        backgroundColor: 'rgba(37,99,235,0.2)',
-        borderColor: '#2563eb',
-        pointBackgroundColor: '#2563eb',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      scales: {
-        r: {
-          angleLines: { color: '#e5e7eb' },
-          grid: { color: '#f3f4f6' },
-          suggestedMin: 0,
-          suggestedMax: 100,
-          ticks: { stepSize: 20 }
-        }
+    // Risk Radar
+    new Chart(document.getElementById('riskRadar'), {
+      type: 'radar',
+      data: {
+        labels: ['Attendance', 'Fees', 'Performance'],
+        datasets: [{
+          label: 'Student Score',
+          data: [85, 90, 78],
+          backgroundColor: 'rgba(37,99,235,0.2)',
+          borderColor: '#2563eb',
+          pointBackgroundColor: '#2563eb',
+          borderWidth: 2
+        }]
       },
-      plugins: {
-        legend: { display: false }
+      options: {
+        scales: {
+          r: {
+            angleLines: { color: '#e5e7eb' },
+            grid: { color: '#f3f4f6' },
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: { stepSize: 20 }
+          }
+        },
+        plugins: { legend: { display: false } }
       }
-    }
-  });
-</script>
+    });
   </script>
-</body>
-</html>
+{% endblock %}

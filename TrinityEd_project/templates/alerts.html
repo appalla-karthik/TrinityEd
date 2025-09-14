@@ -1,10 +1,6 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alerts | TrinityEd</title>
+{% block extra_head %}
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
@@ -141,9 +137,8 @@ body {
 #toast:hover { transform:translateX(-50%) scale(1.08); box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 20px rgba(59,130,246,0.6); }
 @keyframes bounceToast { 0%{transform:translateX(-50%) scale(0.5);opacity:0;}60%{transform:translateX(-50%) scale(1.2);opacity:1;}80%{transform:translateX(-50%) scale(0.95);}100%{transform:translateX(-50%) scale(1);} }
 </style>
-</head>
-<body>
-
+{% endblock %}
+{% block content %}
 <!-- Mac Window -->
 <div id="alertWindow">
   <div id="alertHeader">
@@ -181,19 +176,8 @@ body {
 
 <!-- Toast -->
 <div id="toast">Alert marked as read!</div>
-
-<!-- Dock -->
-<nav class="dock">
-  <ul class="flex gap-3">
-    <li class="app"><a href="{% url 'mentor_dashboard'%}"><img src="{% static 'img/mentordashboard.png' %}" alt="Overview"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
-    <li class="app"><a href="{% url 'attendance' %}"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
-    <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
-    <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
-    <li class="app active"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
-    <li class="app"><a href="{% url 'logout' %}"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
-  </ul>
-</nav>
-
+{% endblock %}
+{% block extra_scripts %}
 <script>
 /* ===== Mac Buttons ===== */
 const alertWindow = document.getElementById("alertWindow");
@@ -346,6 +330,4 @@ setInterval(()=>{
   createAlert(randomAlert);
 }, Math.random()*5000 + 7000);
 </script>
-
-</body>
-</html>
+{% endblock %}

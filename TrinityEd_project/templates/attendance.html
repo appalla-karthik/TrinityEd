@@ -1,4 +1,7 @@
+{% extends 'base.html' %}
 {% load static %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,7 +28,7 @@
       100% { background-position: 0% 50%; }
     }
     @keyframes fadeInBody { to { opacity: 1; } }
-    /* Mac Window */
+
     .mac-window {
       width: 90%;
       margin: 2rem auto;
@@ -55,49 +58,26 @@
     .yellow { background:#facc15; }
     .green { background:#22c55e; }
     .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
-    /* Table & badges */
+
     .table-row { transition: all 0.3s ease; cursor: pointer; }
     .table-row:hover { background: #e0e7ff; transform: scale(1.02); }
+
     .badge { padding: 3px 12px; border-radius: 9999px; font-weight: 600; }
     .badge-red { background: #fee2e2; color: #b91c1c; }
     .badge-yellow { background: #fef9c3; color: #b45309; }
     .badge-green { background: #d1fae5; color: #047857; }
-    /* Chart box */
+
     .chart-box { transition: transform 0.35s ease; border-radius: 18px; }
     .chart-box:hover { transform: scale(1.05); }
-    /* Student cards */
+
     .student-card { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
     .student-card:hover { transform: scale(1.05); box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
-    /* Dock styles */
-    .dock {
-      position: fixed; bottom: 20px; left: 50%;
-      transform: translateX(-50%);
-      border-radius: 20px; padding: 8px 14px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(18px) saturate(150%);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-    }
-    .app { width: 70px; height: 70px; position: relative; transition: all 200ms; }
-    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease; }
-    .app a { display: block; width: 100%; height: 100%; }
-    .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
-    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
-      transition: 150ms; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: white; white-space: nowrap; }
-    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
-    .app::after { content: ""; position: absolute; bottom: -18%; left: 50%; width: 75%; height: 35%; transform: translateX(-50%) scaleY(-1);
-      background: inherit; opacity: 0.18; border-radius: 14px; filter: blur(6px); }
-    .app:hover { width: 95px; height: 95px; margin-top: -35px; }
-    .app.active .indicator { opacity: 1; }
-    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-      width: 8px; height: 8px; background: white; border-radius: 50%; opacity: 0; }
   </style>
 </head>
 <body class="flex flex-col h-screen">
 
   <!-- ===== Mac Window (Attendance) ===== -->
   <div id="macWindow" class="mac-window">
-    
     <!-- MacOS Style Header -->
     <div class="mac-header">
       <span id="btnClose" class="mac-btn red"></span>
@@ -108,7 +88,6 @@
 
     <!-- Window Content -->
     <main id="macContent" class="flex-1 p-8 overflow-y-auto">
-      <!-- ✅ Attendance page ka pura content yaha same ka same daal diya -->
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">Attendance</h1>
         <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl shadow-md hover:scale-105 transition">Export CSV</button>
@@ -243,31 +222,15 @@
     </main>
   </div>
 
-  <!-- ===== Dock ===== -->
-  <nav id="dock" class="dock">
-    <ul class="flex list-none p-0 gap-3">
-      <li class="app"><a href="{% url 'mentor_dashboard' %}"><img src="{% static 'img/mentordashboard.png' %}" alt="Performance"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
-      <li class="app active"><a href="javascript:void(0)" id="openAttendance"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
-      <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
-      <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
-      <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
-      <li class="app"><a href="{% url 'logout' %}" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
-    </ul>
-  </nav>
-
   <script>
     const macWindow = document.getElementById("macWindow");
     const macContent = document.getElementById("macContent");
     const btnClose = document.getElementById("btnClose");
     const btnMinimize = document.getElementById("btnMinimize");
     const btnMaximize = document.getElementById("btnMaximize");
-    const openAttendance = document.getElementById("openAttendance");
-    let isMaximized = false; // Default to normal state, not maximized
-    let isMinimized = false;
 
-    openAttendance.addEventListener("click", () => {
-      macWindow.classList.remove("hidden");
-    });
+    let isMaximized = false;
+    let isMinimized = false;
 
     btnClose.addEventListener("click", () => {
       macWindow.style.display = "none";
@@ -276,18 +239,10 @@
     btnMinimize.addEventListener("click", () => {
       if (!isMinimized && !isMaximized) {
         macContent.style.display = "none";
-        macWindow.style.position = "static";
-        macWindow.style.width = "90%";
         macWindow.style.height = "auto";
-        macWindow.style.margin = "2rem auto";
-        macWindow.style.borderRadius = "14px";
       } else if (isMinimized) {
         macContent.style.display = "block";
-        macWindow.style.position = "static";
-        macWindow.style.width = "90%";
         macWindow.style.height = "90vh";
-        macWindow.style.margin = "2rem auto";
-        macWindow.style.borderRadius = "14px";
       }
       isMinimized = !isMinimized;
     });
@@ -309,21 +264,10 @@
         macWindow.style.borderRadius = "14px";
       }
       isMaximized = !isMaximized;
-      if (isMaximized) isMinimized = false; // Reset minimized state when maximizing
+      if (isMaximized) isMinimized = false;
     });
 
-    // Dock bounce effect
-    document.querySelectorAll(".app").forEach(app => {
-      app.addEventListener("click", () => {
-        document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
-        app.classList.add("active");
-        const img = app.querySelector("img");
-        img.classList.add("bounce");
-        img.addEventListener("animationend", () => img.classList.remove("bounce"), { once: true });
-      });
-    });
-
-    // Animate student circular bars
+    // Circular Attendance Animation
     document.querySelectorAll('.attendance-circle').forEach(circle => {
       const percent = circle.getAttribute('data-percent');
       const offset = 301 - (301 * percent / 100);
@@ -333,11 +277,12 @@
       }, 300);
     });
 
-    // Chart.js
+    // Attendance Chart
     const ctx = document.getElementById('attendanceChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0,0,0,300);
-    gradient.addColorStop(0,'rgba(37,99,235,0.35)');
-    gradient.addColorStop(1,'rgba(37,99,235,0.05)');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(37,99,235,0.35)');
+    gradient.addColorStop(1, 'rgba(37,99,235,0.05)');
+
     new Chart(ctx, {
       type: 'bar',
       data: {
@@ -364,7 +309,9 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; }
+              label: function(context) {
+                return context.dataset.label + ': ' + context.raw + '%';
+              }
             }
           }
         },
@@ -373,12 +320,12 @@
     });
 
     // Export CSV
-    document.getElementById('exportBtn').addEventListener('click', function(){
+    document.getElementById('exportBtn').addEventListener('click', function () {
       let table = document.getElementById('attendanceTable');
       let rows = Array.from(table.querySelectorAll('tr'));
       let csvContent = rows.map(row => {
         let cols = Array.from(row.querySelectorAll('th, td'));
-        return cols.map(col => col.innerText.replace(/,/g,"")).join(",");
+        return cols.map(col => col.innerText.replace(/,/g, "")).join(",");
       }).join("\n");
       let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       let link = document.createElement("a");
@@ -387,8 +334,8 @@
       link.click();
     });
 
-    // Filter by class
-    document.getElementById('classFilter').addEventListener('change', function(){
+    // Filter Attendance Table
+    document.getElementById('classFilter').addEventListener('change', function () {
       const filter = this.value;
       document.querySelectorAll('#attendanceTable tbody tr').forEach(row => {
         const className = row.cells[2].innerText;
@@ -398,3 +345,4 @@
   </script>
 </body>
 </html>
+{% endblock %}

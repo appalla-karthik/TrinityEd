@@ -1,11 +1,9 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Dashboard | TrinityEd</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+
+{% block title %}{{ student_name }}'s Dashboard | TrinityEd{% endblock %}
+
+{% block extra_head %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -14,6 +12,7 @@
       background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff);
       background-size: 300% 300%;
       animation: gradientShift 12s ease infinite;
+      color: black !important; /* Override text-white from base */
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
@@ -46,47 +45,14 @@
       transform: scale(1.04); 
       box-shadow: 0 14px 32px rgba(37,99,235,0.28);
     }
-
-    /* ===== Mac Dock Styling (same as Fee Page) ===== */
-    .dock {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-radius: 20px;
-      padding: 8px 14px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(18px) saturate(150%);
-      -webkit-backdrop-filter: blur(18px) saturate(150%);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-    }
-    .app { width: 70px; height: 70px; position: relative; transition: all cubic-bezier(0.25, 1, 0.5, 1) 200ms; }
-    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease, filter 200ms ease; }
-    .app a { display: block; width: 100%; height: 100%; }
-    .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
-    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
-      transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
-      background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: white; white-space: nowrap; pointer-events: none; }
-    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
-    .app::after { content: ""; position: absolute; bottom: -18%; left: 50%; width: 75%; height: 35%; transform: translateX(-50%) scaleY(-1);
-      background: inherit; opacity: 0.18; border-radius: 14px; filter: blur(6px); }
-    .app:hover { width: 95px; height: 95px; margin-top: -35px; }
-    .app:hover + .app { width: 85px; height: 85px; margin-top: -20px; }
-    .app:hover + .app + .app { width: 78px; height: 78px; margin-top: -10px; }
-    .app:has(+ .app:hover){ width: 85px; height: 85px; margin-top: -20px; }
-    .app:has(+ .app + .app:hover){ width: 78px; height: 78px; margin-top: -10px; }
-    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-      width: 8px; height: 8px; background: white; border-radius: 50%; box-shadow: 0 0 6px rgba(255,255,255,0.7); opacity: 0; transition: opacity 0.3s ease; }
-    .app.active .indicator { opacity: 1; }
   </style>
-</head>
-<body class="font-sans">
+{% endblock %}
 
+{% block content %}
   <main class="flex-1 p-8 overflow-y-auto animate-fadeIn">
 
     <!-- Greeting -->
-    <h1 class="text-3xl font-bold text-gray-700 mb-8">👋 Welcome, Student!</h1>
+    <h1 class="text-3xl font-bold text-gray-700 mb-8">👋 Welcome, {{ student_name }}!</h1>
 
     <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -96,25 +62,25 @@
         <span class="material-icons text-4xl text-blue-600">event_available</span>
         <div>
           <h3 class="text-sm font-medium text-gray-500">Attendance</h3>
-          <p class="text-3xl font-extrabold text-blue-700">82%</p>
+          <p class="text-3xl font-extrabold text-blue-700">{{ attendance }}%</p>
         </div>
       </div>
 
-      <!-- Assignments Due -->
+      <!-- Average Score -->
       <div class="stat-card p-6 flex items-center gap-5">
-        <span class="material-icons text-4xl text-yellow-500">assignment</span>
+        <span class="material-icons text-4xl text-yellow-500">school</span>
         <div>
-          <h3 class="text-sm font-medium text-gray-500">Assignments Due</h3>
-          <p class="text-3xl font-extrabold text-yellow-600">3</p>
+          <h3 class="text-sm font-medium text-gray-500">Average Score</h3>
+          <p class="text-3xl font-extrabold text-yellow-600">{{ avg_score }}%</p>
         </div>
       </div>
 
-      <!-- Performance -->
+      <!-- Fee Status -->
       <div class="stat-card p-6 flex items-center gap-5">
-        <span class="material-icons text-4xl text-green-600">emoji_events</span>
+        <span class="material-icons text-4xl text-green-600">payment</span>
         <div>
-          <h3 class="text-sm font-medium text-gray-500">Performance Rank</h3>
-          <p class="text-3xl font-extrabold text-green-600">Top 15%</p>
+          <h3 class="text-sm font-medium text-gray-500">Fee Status</h3>
+          <p class="text-3xl font-extrabold text-green-600">{{ fee_status }}</p>
         </div>
       </div>
 
@@ -127,110 +93,91 @@
         <canvas id="attendanceChart"></canvas>
       </div>
       <div class="chart-box p-6">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Subject Performance</h3>
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Test Scores</h3>
         <canvas id="performanceChart"></canvas>
       </div>
     </div>
 
-    <!-- Upcoming Tasks -->
+    <!-- Dropout Risk and Messages -->
     <div class="mt-8 chart-box p-6">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">Upcoming Tasks</h3>
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">Status & Messages</h3>
+      <div class="mb-4">
+        <p class="text-lg font-medium text-gray-700">Dropout Risk: <span class="font-bold {{ dropout_risk|lower }}-text">{{ dropout_risk }}</span></p>
+        <style>
+          .low-text { color: green; }
+          .medium-text { color: orange; }
+          .high-text { color: red; }
+        </style>
+      </div>
       <ul class="divide-y divide-gray-200">
-        <li class="py-2 flex justify-between">
-          <span>📘 Math Assignment - Algebra</span>
-          <span class="text-sm text-gray-500">Due: Sep 20</span>
-        </li>
-        <li class="py-2 flex justify-between">
-          <span>🧪 Science Project - Lab Report</span>
-          <span class="text-sm text-gray-500">Due: Sep 22</span>
-        </li>
-        <li class="py-2 flex justify-between">
-          <span>📖 History Quiz</span>
-          <span class="text-sm text-gray-500">Sep 25</span>
-        </li>
+        {% for message in messages %}
+          <li class="py-2">{{ message|safe }}</li>
+        {% endfor %}
       </ul>
     </div>
 
   </main>
+{% endblock %}
 
-  <!-- Mac Dock -->
-  <nav class="dock z-50">
-    <ul class="flex gap-3">
-      <li class="app active">
-        <a href="{% url 'student_dashboard' %}">
-          <img src="{% static 'img/StudentDashboard.png' %}" alt="Dashboard"/>
-          <span class="tooltip">Dashboard</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'progress' %}">
-          <img src="{% static 'img/progress.png' %}" alt="Progress"/>
-          <span class="tooltip">Progress</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'counselling' %}">
-          <img src="{% static 'img/counselling.png' %}" alt="Counselling"/>
-          <span class="tooltip">Counselling</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'resources' %}">
-          <img src="{% static 'img/resources.png' %}" alt="Resources"/>
-          <span class="tooltip">Resources</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-      <li class="app">
-        <a href="{% url 'logout' %}" onclick="alert('Logged Out')">
-          <img src="{% static 'img/logout.png' %}" alt="Logout"/>
-          <span class="tooltip">Logout</span>
-        </a>
-        <div class="indicator"></div>
-      </li>
-    </ul>
-  </nav>
-
-  <!-- Scripts -->
+{% block extra_js %}
   <script>
     // Attendance Chart
-    new Chart(document.getElementById('attendanceChart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: ['Mon','Tue','Wed','Thu','Fri'],
-        datasets: [{
-          label: 'Attendance %',
-          data: [85, 78, 92, 80, 88],
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37,99,235,0.15)',
-          fill: true,
-          tension: 0.35,
-          borderWidth: 3,
-          pointRadius: 6,
-          pointHoverRadius: 8
-        }]
-      },
-      options: { scales: { y: { max: 100, beginAtZero: true } } }
-    });
+    try {
+      const attendanceChartCtx = document.getElementById('attendanceChart').getContext('2d');
+      new Chart(attendanceChartCtx, {
+        type: 'line',
+        data: {
+          labels: {{ attendance_weeks|safe }},
+          datasets: [{
+            label: 'Attendance %',
+            data: {{ attendance_values|safe }},
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 8
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              max: 100,
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Error rendering attendance chart:', e);
+    }
 
     // Performance Chart
-    new Chart(document.getElementById('performanceChart').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: ['Math','Science','English','History'],
-        datasets: [{
-          label: 'Scores',
-          data: [78, 72, 85, 80],
-          borderRadius: 14,
-          backgroundColor: ['#2563eb','#dc2626','#f59e0b','#16a34a']
-        }]
-      },
-      options: { scales: { y: { max: 100, beginAtZero: true } } }
-    });
+    try {
+      const performanceChartCtx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(performanceChartCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ score_tests|safe }},
+          datasets: [{
+            label: 'Scores',
+            data: {{ score_values|safe }},
+            borderRadius: 14,
+            backgroundColor: ['#2563eb', '#dc2626', '#f59e0b', '#16a34a'].slice(0, {{ score_tests|length|safe }})
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              max: 100,
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Error rendering performance chart:', e);
+    }
   </script>
-
-</body>
-</html>
+{% endblock %}
