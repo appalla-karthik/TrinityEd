@@ -119,11 +119,9 @@
   </style>
 </head>
 <body class="flex flex-col min-h-screen bg-cover bg-center bg-fixed relative" 
-      style="background-image: url('{% static "img/mentor_wallpaper.webp" %}');">
+      style="background-image: url('{% static "img\mentor_wallpaper.webp" %}')">
   
   <!-- optional overlay for contrast -->
-  <div class="absolute inset-0 bg-black/20"></div>
-
   <div id="macWindow" class="mac-window flex flex-col h-[90vh] relative z-10">
     <div class="mac-header">
       <span id="btnClose" class="mac-btn red"></span>
@@ -202,6 +200,51 @@
   let isMaximized = false;
   let isMinimized = false;
 
+  // Default state styles
+  function setDefaultStyles() {
+    macWindow.style.position = "static";
+    macWindow.style.top = "auto";
+    macWindow.style.left = "auto";
+    macWindow.style.width = "90%";
+    macWindow.style.height = "90vh";
+    macWindow.style.margin = "2rem auto";
+    macWindow.style.borderRadius = "14px";
+    macContent.style.display = "block";
+    macWindow.style.pointerEvents = "auto"; // Ensure entire window is clickable
+    macHeader.style.pointerEvents = "auto"; // Ensure header is clickable
+  }
+
+  // Minimized state styles
+  function setMinimizedStyles() {
+    macWindow.style.position = "static";
+    macWindow.style.top = "auto";
+    macWindow.style.left = "auto";
+    macWindow.style.width = "50%"; // Smaller width
+    macWindow.style.height = "40px"; // Only header height
+    macWindow.style.margin = "2rem auto";
+    macWindow.style.borderRadius = "14px";
+    macContent.style.display = "none";
+    macWindow.style.pointerEvents = "auto"; // Ensure entire window is clickable
+    macHeader.style.pointerEvents = "auto"; // Ensure header is clickable
+  }
+
+  // Maximized state styles
+  function setMaximizedStyles() {
+    macWindow.style.position = "fixed";
+    macWindow.style.top = "0";
+    macWindow.style.left = "0";
+    macWindow.style.width = "100%";
+    macWindow.style.height = "100vh";
+    macWindow.style.margin = "0";
+    macWindow.style.borderRadius = "0";
+    macContent.style.display = "block";
+    macWindow.style.pointerEvents = "auto"; // Ensure entire window is clickable
+    macHeader.style.pointerEvents = "auto"; // Ensure header is clickable
+  }
+
+  // Reference to macHeader
+  const macHeader = document.querySelector(".mac-header");
+
   // 🔴 Close → hide window
   btnClose.addEventListener("click", () => {
     macWindow.style.display = "none";
@@ -210,50 +253,29 @@
   // 🟡 Minimize → toggle content visibility based on state
   btnMinimize.addEventListener("click", () => {
     if (!isMinimized) {
-      // If maximized, restore to normal with content visible
       if (isMaximized) {
-        macWindow.style.position = "static";
-        macWindow.style.width = "90%";
-        macWindow.style.height = "90vh"; // Consistent height
-        macWindow.style.margin = "2rem auto";
-        macWindow.style.borderRadius = "14px";
-        macContent.style.display = "block"; // Keep content visible
+        setDefaultStyles();
         isMaximized = false;
-        return; // Exit after restoring
+      } else {
+        setMinimizedStyles();
       }
-      // From normal state, hide content
-      macContent.style.display = "none";
-      macWindow.style.height = "60px"; // Minimum height for header visibility
-      macWindow.style.margin = "2rem auto";
+      isMinimized = true;
     } else {
-      // Restore from minimized state
-      macContent.style.display = "block";
-      macWindow.style.height = "90vh";
-      macWindow.style.margin = "2rem auto";
+      setDefaultStyles();
+      isMinimized = false;
     }
-    isMinimized = !isMinimized;
   });
 
   // 🟢 Maximize → toggle fullscreen
   btnMaximize.addEventListener("click", () => {
     if (!isMaximized) {
-      macWindow.style.position = "fixed";
-      macWindow.style.top = "0";
-      macWindow.style.left = "0";
-      macWindow.style.width = "100%";
-      macWindow.style.height = "100vh";
-      macWindow.style.margin = "0";
-      macWindow.style.borderRadius = "0";
+      setMaximizedStyles();
+      isMaximized = true;
+      isMinimized = false;
     } else {
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "90vh";
-      macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
+      setDefaultStyles();
+      isMaximized = false;
     }
-    macContent.style.display = "block";
-    isMaximized = !isMaximized;
-    if (isMaximized) isMinimized = false; // Reset minimized state
   });
 
   // Bar Chart

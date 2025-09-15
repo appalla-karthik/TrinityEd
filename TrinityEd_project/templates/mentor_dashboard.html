@@ -223,7 +223,7 @@
     .delay-200 { animation-delay: 0.2s; }
     .delay-300 { animation-delay: 0.3s; }
   </style>
-</head>
+</head> 
 
 <body class="flex flex-col min-h-screen">
   <!-- macOS Window Wrapper -->
@@ -237,9 +237,17 @@
 
     <!-- Main Content -->
     <main id="macContent" class="flex-1 p-8 overflow-y-auto animate-fadeIn">
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Total Students -->
+      <div class="flex justify-end mb-4 m">
+            <a href="{% url 'learner_list' %}" 
+   class="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 text-white font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-300">
+    <span class="material-icons text-sm">person_add</span>
+    Add Student
+</a>
+
+          </div>
+      <!-- Stats Cards Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Total Students Card -->
         <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
           <div class="icon-box relative w-20 h-20 flex items-center justify-center">
             <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
@@ -254,7 +262,7 @@
           </div>
         </div>
 
-        <!-- At-Risk Students -->
+        <!-- At-Risk Students Card -->
         <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
           <div class="icon-box relative w-20 h-20 flex items-center justify-center">
             <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
@@ -269,19 +277,22 @@
           </div>
         </div>
 
-        <!-- Alerts Sent -->
-        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
-          <div class="icon-box relative w-20 h-20 flex items-center justify-center">
-            <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
-              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-              <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-            </svg>
-            <span class="material-icons text-3xl text-green-600">notifications_active</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-medium text-gray-500">Alerts Sent</h3>
-            <p class="text-3xl font-extrabold text-green-600 count-up" data-target="{{ alerts_sent }}">{{ alerts_sent }}</p>
-          </div>
+        <!-- Alerts Sent Card + Add Student Button -->
+      
+          
+          <!-- Alerts Sent Card -->
+          <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+            <div class="icon-box relative w-20 h-20 flex items-center justify-center">
+              <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
+                <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+                <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              </svg>
+              <span class="material-icons text-3xl text-green-600">notifications_active</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Alerts Sent</h3>
+              <p class="text-3xl font-extrabold text-green-600 count-up" data-target="{{ alerts_sent }}">{{ alerts_sent }}</p>
+            </div>
         </div>
       </div>
 

@@ -13,5 +13,7 @@ urlpatterns = [
      path("student1/", views.student, name="student_dashboard"),
      path("progress/", views.progress, name="progress"),
      path("counselling/", views.counselling, name="counselling"),
-     path("resources/", views.resources, name="resources"),    
+     path("resources/", views.resources, name="resources"),   
+     path("learners/", views.learner_list, name="learner_list"),
+    path("learners/<int:pk>/", views.learner_detail, name="learner_detail"), 
 ]

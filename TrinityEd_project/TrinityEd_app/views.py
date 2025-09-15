@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from datetime import date, timedelta
@@ -8,8 +8,16 @@ import json
 import joblib
 from django.db.models import Avg, Max, Min
 import numpy as np
-from TrinityEd_app.models import Alert, Student, Attendance, Performance
+from TrinityEd_app.models import Alert, Learner, Student, Attendance, Performance
 
+
+def learner_list(request):
+    learners = Learner.objects.all()
+    return render(request, "learner_list.html", {"learners": learners})
+
+def learner_detail(request, pk):
+    learner = get_object_or_404(Learner, pk=pk)
+    return render(request, "learner_detail.html", {"learner": learner})
 # Home page
 def home(request):
     return render(request, 'home.html')

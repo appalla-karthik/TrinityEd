@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-6">
+  <h2 class="text-2xl font-bold mb-4">{{ learner.name }}</h2>
+  <div class="space-y-3">
+    <p><strong>Email:</strong> {{ learner.email }}</p>
+    <p><strong>Enrollment No:</strong> {{ learner.enrollment_no }}</p>
+    <p><strong>Course:</strong> {{ learner.course }}</p>
+    <p><strong>Year:</strong> {{ learner.year }}</p>
+    <p><strong>Attendance:</strong> {{ learner.attendance_percentage }}%</p>
+    <p><strong>Performance:</strong> {{ learner.performance_score }}</p>
+  </div>
+  <a href="{% url 'learner_list' %}" 
+     class="mt-4 inline-block px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Back</a>
+</div>
+{% endblock %}

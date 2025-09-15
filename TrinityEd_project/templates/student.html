@@ -96,8 +96,8 @@
   </div>
 
   <main id="macContent" class="flex-1 p-8 overflow-y-auto">
-    <!-- Student Profile -->
-    <div class="flex items-start justify-between mb-10" style="">
+    <!-- Student Profile and Risk Level -->
+    <div class="flex items-start justify-between mb-10">
       <div class="flex items-center gap-6">
         <img src="{% static 'images/profile.png' %}" alt="Profile"
              class="w-28 h-28 rounded-full object-cover shadow-md border">
@@ -109,26 +109,45 @@
           <p class="text-gray-600"><strong>Phone:</strong> {{ phone }}</p>
         </div>
       </div>
-      
+      <div class="text-right">
+        <p class="text-lg font-semibold text-red-600">Risk Level: High</p>
+        <p class="text-sm text-green-600"><strong>Score:</strong> 7.1/10</p>
+      </div>
     </div>
 
     <!-- Stats Row -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       <div class="stat-card flex items-center gap-4">
         <span class="material-icons text-4xl text-indigo-600">school</span>
-        <div><p class="text-sm text-gray-500">GPA</p><p class="text-2xl font-bold">{{ gpa }}</p></div>
+        <div>
+          <p class="text-sm text-gray-500">Current GPA</p>
+          <p class="text-2xl font-bold">2.60</p>
+          <p class="text-xs text-red-600">-0.42 from last term</p>
+        </div>
       </div>
       <div class="stat-card flex items-center gap-4">
         <span class="material-icons text-4xl text-blue-600">event_available</span>
-        <div><p class="text-sm text-gray-500">Attendance</p><p class="text-2xl font-bold">{{ attendance }}%</p></div>
+        <div>
+          <p class="text-sm text-gray-500">Attendance Rate</p>
+          <p class="text-2xl font-bold">74.1%</p>
+          <p class="text-xs text-red-600">-4.5% from last month</p>
+        </div>
       </div>
       <div class="stat-card flex items-center gap-4">
         <span class="material-icons text-4xl text-green-600">check_circle</span>
-        <div><p class="text-sm text-gray-500">Credits</p><p class="text-2xl font-bold">{{ credits_earned }}/{{ credits_total }}</p></div>
+        <div>
+          <p class="text-sm text-gray-500">Credits Earned</p>
+          <p class="text-2xl font-bold">18/24</p>
+          <p class="text-xs text-green-600">+12 this term</p>
+        </div>
       </div>
       <div class="stat-card flex items-center gap-4">
         <span class="material-icons text-4xl text-red-500">report_problem</span>
-        <div><p class="text-sm text-gray-500">Incidents</p><p class="text-2xl font-bold">{{ incidents }}</p></div>
+        <div>
+          <p class="text-sm text-gray-500">Behavioral Incidents</p>
+          <p class="text-2xl font-bold">3</p>
+          <p class="text-xs text-red-600">0 this month</p>
+        </div>
       </div>
     </div>
 
@@ -163,11 +182,24 @@
   let isMaximized = false, isMinimized = false;
 
   btnClose.onclick = () => macWindow.style.display = "none";
-  btnMinimize.onclick = () => {
-    if (!isMinimized) { macContent.style.display = "none"; macWindow.style.height = "60px"; }
-    else { macContent.style.display = "block"; macWindow.style.height = "90vh"; }
-    isMinimized = !isMinimized;
-  };
+  btnMinimize.addEventListener("click", () => {
+      if (!isMinimized && !isMaximized) {
+        macContent.style.display = "none";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "auto";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      } else if (isMinimized) {
+        macContent.style.display = "block";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "auto";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      }
+      isMinimized = !isMinimized;
+    });
   btnMaximize.onclick = () => {
     if (!isMaximized) { macWindow.style.position="fixed"; macWindow.style.top="0"; macWindow.style.left="0";
       macWindow.style.width="100%"; macWindow.style.height="100vh"; macWindow.style.margin="0"; macWindow.style.borderRadius="0"; }
@@ -184,17 +216,34 @@
   // Attendance Chart
   new Chart(document.getElementById('attendanceChart'), {
     type: 'line',
-    data: { labels: {{ attendance_weeks|safe }}, datasets:[{label:'Attendance %',data:{{ attendance_values|safe }},
-      borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.15)',fill:true,tension:0.35,borderWidth:3}] },
-    options:{scales:{y:{max:100,beginAtZero:true}}}
+    data: {
+      labels: ['Sep 8', 'Sep 9', 'Sep 10', 'Sep 11', 'Sep 12', 'Sep 13', 'Sep 14'],
+      datasets: [{
+        label: 'Attendance %',
+        data: [75, 73, 70, 72, 76, 74, 74],
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37,99,235,0.15)',
+        fill: true,
+        tension: 0.35,
+        borderWidth: 3
+      }]
+    },
+    options: { scales: { y: { max: 100, beginAtZero: true } } }
   });
 
   // Performance Chart
   new Chart(document.getElementById('performanceChart'), {
     type: 'bar',
-    data: { labels: {{ score_tests|safe }}, datasets:[{label:'Scores',data:{{ score_values|safe }},
-      borderRadius:14,backgroundColor:['#2563eb','#dc2626','#f59e0b','#16a34a'].slice(0,{{ score_tests|length|safe }})}] },
-    options:{scales:{y:{max:100,beginAtZero:true}}}
+    data: {
+      labels: ['Test 1', 'Test 2', 'Test 3'],
+      datasets: [{
+        label: 'Scores',
+        data: [68, 72, 70],
+        borderRadius: 14,
+        backgroundColor: ['#2563eb', '#dc2626', '#f59e0b']
+      }]
+    },
+    options: { scales: { y: { max: 100, beginAtZero: true } } }
   });
 </script>
 {% endblock %}

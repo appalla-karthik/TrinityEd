@@ -74,3 +74,16 @@ class Alert(models.Model):
 
     def __str__(self):
         return self.title
+    
+# student btton
+class Learner(models.Model):
+    name = models.CharField(max_length=150)
+    email = models.EmailField(unique=True)
+    enrollment_no = models.CharField(max_length=50, unique=True)
+    course = models.CharField(max_length=100)
+    year = models.IntegerField()
+    attendance_percentage = models.FloatField(default=0.0)
+    performance_score = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"{self.name} ({self.enrollment_no})"

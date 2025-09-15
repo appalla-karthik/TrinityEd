@@ -30,19 +30,19 @@
   <!-- Animated Background -->
   <canvas id="bgCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
 
-  <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-8 transform transition duration-500 hover:scale-[1.02]">
+  <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-4 mx-auto transform transition duration-500 hover:scale-[1.02]">
     <!-- Header -->
     <div class="text-center">
-      <h2 class="text-3xl font-extrabold text-gray-900">Create your account</h2>
-      <p class="mt-2 text-sm text-gray-600">Join the Student Success System</p>
+      <h2 class="text-2xl font-extrabold text-gray-900">Create your account</h2>
+      <p class="mt-1 text-sm text-gray-600">Join the Student Success System</p>
     </div>
 
     <!-- Form -->
-    <form class="mt-8 space-y-6" method="post">
+    <form class="mt-4 space-y-4 px-4" method="post"> <!-- Added px-4 for side padding -->
       {% csrf_token %}
-      <div class="space-y-4">
+      <div class="space-y-3">
         <!-- Name Fields -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-2">
           <div>
             <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">First Name</label>
             {{ form.first_name }}
@@ -138,7 +138,7 @@
       <!-- Submit Button -->
       <div>
         <button type="submit" 
-          class="w-full py-3 px-4 rounded-xl text-white font-semibold bg-indigo-600 shadow-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 transition duration-300">
+          class="w-full py-2 px-3 rounded-xl text-white font-semibold bg-indigo-600 shadow-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 transition duration-300">
           Create Account
         </button>
       </div>
@@ -212,8 +212,6 @@
         eyeClosed.classList.remove("hidden");
       }
     }
-
-    
   </script>
 </body>
 </html>
