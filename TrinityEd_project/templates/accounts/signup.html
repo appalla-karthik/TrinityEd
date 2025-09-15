@@ -7,6 +7,14 @@
   <title>TrinityEd - Signup</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Three.js-inspired starry background */
+    .starry-background {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
     /* Shake effect for errors */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -18,7 +26,9 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
+<body class="starry-background flex items-center justify-center min-h-screen">
+  <!-- Animated Background -->
+  <canvas id="bgCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
 
   <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-8 transform transition duration-500 hover:scale-[1.02]">
     <!-- Header -->
@@ -143,8 +153,50 @@
     </form>
   </div>
 
+  <!-- JS for eye toggle and Three.js background -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
   <!-- JS for password eye toggle -->
   <script>
+    // Three.js Background
+    const canvas = document.getElementById("bgCanvas");
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x0a192f, 1); // Dark blue background
+
+    // Particles
+    const particles = new THREE.BufferGeometry();
+    const count = 3000;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 10;
+    }
+    particles.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+    const material = new THREE.PointsMaterial({ color: 0x66ccff, size: 0.02 });
+    const points = new THREE.Points(particles, material);
+    scene.add(points);
+
+    camera.position.z = 3;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      points.rotation.y += 0.0008;
+      points.rotation.x += 0.0005;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize handler
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
     function togglePassword(inputId, openId, closedId) {
       const passwordInput = document.getElementById(inputId);
       const eyeOpen = document.getElementById(openId);
@@ -160,6 +212,8 @@
         eyeClosed.classList.remove("hidden");
       }
     }
+
+    
   </script>
 </body>
 </html>

@@ -1,21 +1,62 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Resources | TrinityEd{% endblock %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resources | TrinityEd</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-{% block extra_css %}
   <style>
     body {
-      background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff) !important;
+      background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff);
       background-size: 300% 300%;
-      animation: gradientShift 12s ease infinite;
-      color: #1f2937; /* Dark gray text for light background */
+      animation: gradientShift 15s ease infinite;
+      font-family: 'Inter', system-ui, sans-serif;
+      opacity: 0;
+      animation: fadeInBody 1s forwards;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    @keyframes fadeInBody { to { opacity: 1; } }
+
+    .mac-window {
+      width: 90%;
+      margin: 2rem auto;
+      height: 90vh;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .mac-header {
+      display: flex; align-items: center;
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .mac-btn {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      margin-right: 8px;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .red { background:#ef4444; }
+    .yellow { background:#facc15; }
+    .green { background:#22c55e; }
+    .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
+
     .card {
       background: rgba(255, 255, 255, 0.9);
       border-radius: 18px;
@@ -28,45 +69,186 @@
       transform: scale(1.03);
       box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
     }
-    a {
-      text-decoration: none;
-    }
     .download-btn {
-      background-color: #2563eb; /* Tailwind blue-600 */
+      background-color: #2563eb;
       color: white;
       padding: 8px 16px;
       border-radius: 8px;
       transition: background-color 0.3s ease;
     }
-    .download-btn:hover {
-      background-color: #1d4ed8; /* Tailwind blue-700 */
-    }
+    .download-btn:hover { background-color: #1d4ed8; }
   </style>
-{% endblock %}
+</head>
+<body class="flex flex-col h-screen">
 
-{% block content %}
-  <div class="min-h-screen" style="background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff); background-size: 300% 300%; animation: gradientShift 12s ease infinite;">
-    <div class="p-8">
-      <h1 class="text-3xl font-bold text-gray-700 mb-6">📚 Learning Resources</h1>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="card">
-        <h3 class="text-lg font-semibold text-blue-700 mb-2">📘 Math Notes</h3>
-        <p class="text-sm text-gray-600 mb-3">Algebra & Geometry revision notes.</p>
-        <a href="#" class="download-btn">Download</a>
-      </div>
-
-      <div class="card">
-        <h3 class="text-lg font-semibold text-blue-700 mb-2">🧪 Science Project Guide</h3>
-        <p class="text-sm text-gray-600 mb-3">Lab report writing template.</p>
-        <a href="#" class="download-btn">Download</a>
-      </div>
-
-      <div class="card">
-        <h3 class="text-lg font-semibold text-blue-700 mb-2">📖 History Timeline</h3>
-        <p class="text-sm text-gray-600 mb-3">Important events in modern history.</p>
-        <a href="#" class="download-btn">Download</a>
-      </div>
+  <!-- ===== Mac Window (Resources) ===== -->
+  <div id="macWindow" class="mac-window">
+    <!-- MacOS Style Header -->
+    <div class="mac-header">
+      <span id="btnClose" class="mac-btn red"></span>
+      <span id="btnMinimize" class="mac-btn yellow"></span>
+      <span id="btnMaximize" class="mac-btn green"></span>
+      <span class="mac-title">Learning Resources</span>
     </div>
+
+    <!-- Window Content -->
+    <main id="macContent" class="flex-1 p-8 overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">📚 Resources</h1>
+        <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl shadow-md hover:scale-105 transition">Export CSV</button>
+      </div>
+
+      <!-- Filter + Search -->
+      <div class="mb-6 flex flex-wrap gap-4 items-center">
+        <label class="font-medium text-gray-700">Category:</label>
+        <select id="categoryFilter" class="border border-gray-300 rounded-lg p-2">
+          <option value="all">All</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="History">History</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Search resources..." class="border border-gray-300 rounded-lg p-2 flex-1"/>
+      </div>
+
+      <!-- Resource Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6" id="resourceCards">
+        <div class="card" data-category="Math">
+          <h3 class="text-lg font-semibold text-blue-700 mb-2">📘 Math Notes</h3>
+          <p class="text-sm text-gray-600 mb-3">Algebra & Geometry revision notes.</p>
+          <a href="#" class="download-btn">Download</a>
+        </div>
+
+        <div class="card" data-category="Science">
+          <h3 class="text-lg font-semibold text-blue-700 mb-2">🧪 Science Project Guide</h3>
+          <p class="text-sm text-gray-600 mb-3">Lab report writing template.</p>
+          <a href="#" class="download-btn">Download</a>
+        </div>
+
+        <div class="card" data-category="History">
+          <h3 class="text-lg font-semibold text-blue-700 mb-2">📖 History Timeline</h3>
+          <p class="text-sm text-gray-600 mb-3">Important events in modern history.</p>
+          <a href="#" class="download-btn">Download</a>
+        </div>
+      </div>
+
+      <!-- Resources Table -->
+      <div class="overflow-x-auto bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl">
+        <table class="min-w-full divide-y divide-gray-200" id="resourcesTable">
+          <thead class="bg-blue-50">
+            <tr>
+              <th class="px-6 py-3">#</th>
+              <th class="px-6 py-3">Title</th>
+              <th class="px-6 py-3">Category</th>
+              <th class="px-6 py-3">Description</th>
+              <th class="px-6 py-3">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="px-6 py-4">1</td>
+              <td class="px-6 py-4 font-medium text-gray-700">Math Notes</td>
+              <td class="px-6 py-4">Math</td>
+              <td class="px-6 py-4">Algebra & Geometry revision notes.</td>
+              <td class="px-6 py-4"><a href="#" class="download-btn">Download</a></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4">2</td>
+              <td class="px-6 py-4 font-medium text-gray-700">Science Guide</td>
+              <td class="px-6 py-4">Science</td>
+              <td class="px-6 py-4">Lab report writing template.</td>
+              <td class="px-6 py-4"><a href="#" class="download-btn">Download</a></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4">3</td>
+              <td class="px-6 py-4 font-medium text-gray-700">History Timeline</td>
+              <td class="px-6 py-4">History</td>
+              <td class="px-6 py-4">Important events in modern history.</td>
+              <td class="px-6 py-4"><a href="#" class="download-btn">Download</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
+
+  <script>
+    const macWindow = document.getElementById("macWindow");
+    const macContent = document.getElementById("macContent");
+    const btnClose = document.getElementById("btnClose");
+    const btnMinimize = document.getElementById("btnMinimize");
+    const btnMaximize = document.getElementById("btnMaximize");
+
+    let isMaximized = false;
+    let isMinimized = false;
+
+    btnClose.addEventListener("click", () => {
+      macWindow.style.display = "none";
+    });
+
+    btnMinimize.addEventListener("click", () => {
+      if (!isMinimized && !isMaximized) {
+        macContent.style.display = "none";
+        macWindow.style.height = "auto";
+      } else if (isMinimized) {
+        macContent.style.display = "block";
+        macWindow.style.height = "90vh";
+      }
+      isMinimized = !isMinimized;
+    });
+
+    btnMaximize.addEventListener("click", () => {
+      if (!isMaximized) {
+        macWindow.style.position = "fixed";
+        macWindow.style.top = "0";
+        macWindow.style.left = "0";
+        macWindow.style.width = "100%";
+        macWindow.style.height = "100vh";
+        macWindow.style.margin = "0";
+        macWindow.style.borderRadius = "0";
+      } else {
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "90vh";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      }
+      isMaximized = !isMaximized;
+      if (isMaximized) isMinimized = false;
+    });
+
+    // Export CSV
+    document.getElementById('exportBtn').addEventListener('click', function () {
+      let table = document.getElementById('resourcesTable');
+      let rows = Array.from(table.querySelectorAll('tr'));
+      let csvContent = rows.map(row => {
+        let cols = Array.from(row.querySelectorAll('th, td'));
+        return cols.map(col => col.innerText.replace(/,/g, "")).join(",");
+      }).join("\n");
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'resources.csv');
+      link.click();
+    });
+
+    // Filter by category
+    document.getElementById('categoryFilter').addEventListener('change', function () {
+      const filter = this.value.toLowerCase();
+      document.querySelectorAll('#resourceCards .card').forEach(card => {
+        const cat = card.getAttribute('data-category').toLowerCase();
+        card.style.display = (filter === 'all' || filter === cat) ? '' : 'none';
+      });
+    });
+
+    // Search resources
+    document.getElementById('searchInput').addEventListener('input', function () {
+      const term = this.value.toLowerCase();
+      document.querySelectorAll('#resourceCards .card').forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(term) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
 {% endblock %}

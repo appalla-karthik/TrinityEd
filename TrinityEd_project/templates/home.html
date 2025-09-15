@@ -315,39 +315,45 @@
 
 {% block extra_js %}
   <!-- Three.js Background -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
 
   <script>
     // === Three.js Background ===
-    const canvas = document.getElementById("bgCanvas");
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    // === Three.js Background ===
+const canvas = document.getElementById("bgCanvas");
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: false }); // remove transparency
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x0a192f, 1); // Dark blue background
+// Try 0x0a192f or 0x001f3f for different deep blue tones
 
-    // Particles
-    const particles = new THREE.BufferGeometry();
-    const count = 3000;
-    const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 10;
-    }
-    particles.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+// Particles
+const particles = new THREE.BufferGeometry();
+const count = 3000;
+const positions = new Float32Array(count * 3);
+for (let i = 0; i < count * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 10;
+}
+particles.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
-    const material = new THREE.PointsMaterial({ color: 0x6366f1, size: 0.02 });
-    const points = new THREE.Points(particles, material);
-    scene.add(points);
+// Brighter particles for contrast
+const material = new THREE.PointsMaterial({ color: 0x66ccff, size: 0.02 });
+const points = new THREE.Points(particles, material);
+scene.add(points);
 
-    camera.position.z = 3;
+camera.position.z = 3;
 
-    function animate() {
-        requestAnimationFrame(animate);
-        points.rotation.y += 0.0008;
-        points.rotation.x += 0.0005;
-        renderer.render(scene, camera);
-    }
-    animate();
+function animate() {
+    requestAnimationFrame(animate);
+    points.rotation.y += 0.0008;
+    points.rotation.x += 0.0005;
+    renderer.render(scene, camera);
+}
+animate();
+
 
     // Resize handler
     window.addEventListener("resize", () => {

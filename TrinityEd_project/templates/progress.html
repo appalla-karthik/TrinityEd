@@ -26,146 +26,166 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .card:hover { transform: scale(1.02); box-shadow: 0 12px 32px rgba(37,99,235,0.25); }
+
+    .mac-window {
+      width: 90%;
+      margin: 2rem auto;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .mac-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .mac-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .mac-btn.red { background: #ff5f57; }
+    .mac-btn.yellow { background: #ffbd2f; }
+    .mac-btn.green { background: #28c840; }
   </style>
 {% endblock %}
 
 {% block content %}
-  <main class=" p-8 animate-fadeIn pb-24">
+<div id="macWindow" class="mac-window flex flex-col h-[90vh]">
+  <!-- macOS header -->
+  <div class="mac-header">
+    <span id="btnClose" class="mac-btn red"></span>
+    <span id="btnMinimize" class="mac-btn yellow"></span>
+    <span id="btnMaximize" class="mac-btn green"></span>
+    <span class="ml-4 font-medium text-gray-600">📊 Progress Overview</span>
+  </div>
 
-    <h1 class="text-3xl font-bold text-gray-700 mb-6">📊 Progress Overview</h1>
-
+  <!-- Main content -->
+  <main id="macContent" class="flex-1 p-8 overflow-y-auto pb-24">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <!-- Attendance Trend -->
-      <div class="card">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Weekly Attendance</h3>
-        <canvas id="attendanceChart"></canvas>
-      </div>
-
-      <!-- Subject Scores -->
-      <div class="card">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Subject Performance</h3>
-        <canvas id="performanceChart"></canvas>
-      </div>
-
-      <!-- Risk Score -->
+      <!-- 📈 Academic Trends -->
       <div class="card lg:col-span-2">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Dropout Risk Prediction</h3>
-        <div class="flex items-center gap-6">
-          <div class="w-40 h-40 relative">
-            <canvas id="riskChart"></canvas>
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">📈 Academic Performance Trends</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h4 class="text-gray-600 font-medium mb-2">GPA Trend Over Time</h4>
+            <canvas id="gpaTrendChart"></canvas>
           </div>
-          <p class="text-lg text-gray-600">
-            Based on your recent attendance & performance, your current 
-            <span class="font-bold text-blue-600">Risk Level is Low (15%)</span>. Keep it up! 🎉
-          </p>
+          <div>
+            <h4 class="text-gray-600 font-medium mb-2">Monthly Attendance Rate</h4>
+            <canvas id="monthlyAttendanceChart"></canvas>
+          </div>
         </div>
       </div>
 
-      <!-- GPA Progress -->
-      <div class="card">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Overall GPA Progress</h3>
-        <div class="w-40 h-40 mx-auto">
-          <canvas id="gpaChart"></canvas>
+      <!-- 📚 Subject Performance + Summary -->
+      <div class="card lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">📚 Subject Performance</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2">
+            <canvas id="subjectGradesChart"></canvas>
+          </div>
+          <div class="p-4 bg-white rounded-xl border text-gray-600">
+            <h4 class="font-semibold mb-3">📑 Grade Summary</h4>
+            <ul class="space-y-2">
+              <li>Math: <span class="font-bold text-green-600">A</span></li>
+              <li>Science: <span class="font-bold text-yellow-600">B+</span></li>
+              <li>English: <span class="font-bold text-blue-600">A-</span></li>
+              <li>History: <span class="font-bold text-red-600">C</span></li>
+            </ul>
+          </div>
         </div>
-        <p class="mt-3 text-center text-gray-600">Your GPA: <span class="font-bold text-green-600">3.6 / 4.0</span></p>
       </div>
 
-      <!-- Risk Radar -->
-      <div class="card">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">📡 Risk Radar</h3>
-        <canvas id="riskRadar"></canvas>
-        <p class="mt-3 text-center text-gray-600 text-sm">
-          Visualizing your status across <span class="font-semibold text-blue-600">Attendance, Fees, and Performance</span>
-        </p>
+      <!-- 🗓️ Attendance Details -->
+      <div class="card lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">🗓️ Attendance Details</h3>
+        <table class="min-w-full text-left text-sm text-gray-600">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="px-4 py-2">Date</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t">
+              <td class="px-4 py-2">2025-09-01</td>
+              <td class="px-4 py-2 text-green-600">Present</td>
+              <td class="px-4 py-2">On time</td>
+            </tr>
+            <tr class="border-t">
+              <td class="px-4 py-2">2025-09-02</td>
+              <td class="px-4 py-2 text-red-600">Absent</td>
+              <td class="px-4 py-2">Sick leave</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- Achievements -->
-      <div class="card">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">🏅 Achievements</h3>
+      <!-- ⚠️ Behavioral Incidents -->
+      <div class="card lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">⚠️ Behavioral Incidents & Interventions</h3>
         <ul class="list-disc pl-6 text-gray-600 space-y-2">
-          <li>Top 10% in Science Olympiad</li>
-          <li>Perfect Attendance in August</li>
-          <li>Improved Math score by 15%</li>
-        </ul>
-      </div>
-
-      <!-- Suggestions -->
-      <div class="card">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">💡 Improvement Suggestions</h3>
-        <ul class="space-y-2 text-gray-600">
-          <li>📘 Revise Algebra before next test</li>
-          <li>🧪 Join extra Science practice sessions</li>
-          <li>📖 Read at least 15 mins daily for English</li>
+          <li>Late submission of assignments (Sep 5, 2025) → Reminder sent</li>
+          <li>Classroom disturbance (Sep 10, 2025) → Mentor counseling</li>
+          <li>Improved behavior noted after intervention (Sep 12, 2025)</li>
         </ul>
       </div>
 
     </div>
   </main>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-  <script>
-    // Attendance Chart
-    new Chart(document.getElementById('attendanceChart'), {
-      type: 'line',
-      data: { labels: ['Mon','Tue','Wed','Thu','Fri'], datasets: [{
-        label: 'Attendance %',
-        data: [85, 90, 80, 88, 92],
-        borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.2)', fill: true, tension: 0.4
-      }]},
-      options: { scales: { y: { max: 100, beginAtZero: true } } }
-    });
+<script>
+  // GPA Trend Line
+  new Chart(document.getElementById('gpaTrendChart'), {
+    type: 'line',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'],
+      datasets: [{ label: 'GPA', data: [3.2,3.4,3.5,3.6,3.7,3.6,3.8,3.9],
+        borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.2)', fill: true, tension: 0.4 }]
+    },
+    options: { scales: { y: { min: 0, max: 4 } } }
+  });
 
-    // Performance Chart
-    new Chart(document.getElementById('performanceChart'), {
-      type: 'bar',
-      data: { labels: ['Math','Science','English','History'], datasets: [{
-        data: [78, 82, 88, 74], backgroundColor: ['#2563eb','#f59e0b','#dc2626','#16a34a'], borderRadius: 12
-      }]},
-      options: { scales: { y: { max: 100, beginAtZero: true } } }
-    });
+  // Monthly Attendance
+  new Chart(document.getElementById('monthlyAttendanceChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'],
+      datasets: [{ label: 'Attendance %', data: [92,88,95,90,85,94,96,91],
+        backgroundColor: '#16a34a', borderRadius: 10 }]
+    },
+    options: { scales: { y: { max: 100, beginAtZero: true } } }
+  });
 
-    // Risk Chart
-    new Chart(document.getElementById('riskChart'), {
-      type: 'doughnut',
-      data: { labels: ['Risk','Safe'], datasets: [{ data: [15,85], backgroundColor: ['#dc2626','#16a34a'] }] },
-      options: { cutout: '70%', plugins: { legend: { display: false } } }
-    });
+  // Subject Grades
+  new Chart(document.getElementById('subjectGradesChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Math','Science','English','History'],
+      datasets: [{ label: 'Grade %', data: [95, 82, 88, 68],
+        backgroundColor: ['#2563eb','#f59e0b','#16a34a','#dc2626'], borderRadius: 12 }]
+    },
+    options: { scales: { y: { max: 100, beginAtZero: true } } }
+  });
 
-    // GPA Progress
-    new Chart(document.getElementById('gpaChart'), {
-      type: 'doughnut',
-      data: { datasets: [{ data: [90,10], backgroundColor: ['#16a34a','#e5e7eb'] }] },
-      options: { cutout: '75%', plugins: { legend: { display: false } } }
-    });
-
-    // Risk Radar
-    new Chart(document.getElementById('riskRadar'), {
-      type: 'radar',
-      data: {
-        labels: ['Attendance', 'Fees', 'Performance'],
-        datasets: [{
-          label: 'Student Score',
-          data: [85, 90, 78],
-          backgroundColor: 'rgba(37,99,235,0.2)',
-          borderColor: '#2563eb',
-          pointBackgroundColor: '#2563eb',
-          borderWidth: 2
-        }]
-      },
-      options: {
-        scales: {
-          r: {
-            angleLines: { color: '#e5e7eb' },
-            grid: { color: '#f3f4f6' },
-            suggestedMin: 0,
-            suggestedMax: 100,
-            ticks: { stepSize: 20 }
-          }
-        },
-        plugins: { legend: { display: false } }
-      }
-    });
-  </script>
+  // MacOS Window Controls
+  const macWindow=document.getElementById("macWindow"),macContent=document.getElementById("macContent");
+  const btnClose=document.getElementById("btnClose"),btnMinimize=document.getElementById("btnMinimize"),btnMaximize=document.getElementById("btnMaximize");
+  let isMaximized=false,isMinimized=false;
+  btnClose.addEventListener("click",()=>macWindow.style.display="none");
+  btnMinimize.addEventListener("click",()=>{if(!isMinimized){macContent.style.display="none";macWindow.style.height="60px";}else{macContent.style.display="block";macWindow.style.height="90vh";}isMinimized=!isMinimized;});
+  btnMaximize.addEventListener("click",()=>{if(!isMaximized){macWindow.style.position="fixed";macWindow.style.top="0";macWindow.style.left="0";macWindow.style.width="100%";macWindow.style.height="100vh";macWindow.style.margin="0";macWindow.style.borderRadius="0";}else{macWindow.style.position="static";macWindow.style.width="90%";macWindow.style.height="90vh";macWindow.style.margin="2rem auto";macWindow.style.borderRadius="14px";}macContent.style.display="block";isMaximized=!isMaximized;if(isMaximized)isMinimized=false;});
+</script>
 {% endblock %}

@@ -6,13 +6,12 @@
 {% block extra_head %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
   <style>
     body {
       background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff);
       background-size: 300% 300%;
       animation: gradientShift 12s ease infinite;
-      color: black !important; /* Override text-white from base */
+      font-family: 'Inter', sans-serif;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
@@ -20,164 +19,182 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* Stat cards */
-    .stat-card {
+    .mac-window {
+      width: 90%;
+      height: 90vh;
+      margin: 2rem auto;
       background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(14px);
-      border-radius: 20px;
-      border: 1px solid rgba(37,99,235,0.1);
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(18px);
     }
-    .stat-card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 28px rgba(37,99,235,0.25);
+    .mac-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f5f5f7;
+      border-bottom: 1px solid #ddd;
     }
+    .mac-btn { width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; cursor: pointer; }
+    .mac-btn.red { background: #ff5f57; }
+    .mac-btn.yellow { background: #ffbd2f; }
+    .mac-btn.green { background: #28c840; }
 
-    /* Chart boxes */
-    .chart-box {
-      border-radius: 20px;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(37,99,235,0.15);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .chart-box:hover { 
-      transform: scale(1.04); 
-      box-shadow: 0 14px 32px rgba(37,99,235,0.28);
-    }
+    .notification-wrapper { position: relative; cursor: pointer; }
+    .notification-icon { font-size: 28px; color: #555; transition: transform 0.2s ease; }
+    .notification-wrapper:hover .notification-icon { transform: scale(1.2); color: #2563eb; }
+    .notification-count { position: absolute; top: -4px; right: -6px; background: #ef4444; color: white;
+      font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 999px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+    .notification-dropdown { position: absolute; top: 40px; right: 0; width: 300px; background: white;
+      border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px);
+      pointer-events: none; transition: all 0.3s ease; z-index: 50; }
+    .notification-dropdown.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .notification-item { padding: 12px 16px; font-size: 14px; color: #333; border-bottom: 1px solid #eee; }
+    .notification-item:last-child { border-bottom: none; }
+
+    .stat-card { background: rgba(255,255,255,0.9); backdrop-filter: blur(14px); border-radius: 20px; padding: 20px;
+      border: 1px solid rgba(37,99,235,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .stat-card:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(37,99,235,0.25); }
+
+    .chart-box { border-radius: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(16px);
+      border: 1px solid rgba(37,99,235,0.15); padding: 20px; }
+    .chart-box:hover { transform: scale(1.02); box-shadow: 0 12px 28px rgba(37,99,235,0.2); }
+
+    .low-text { color: green; }
+    .medium-text { color: orange; }
+    .high-text { color: red; }
   </style>
 {% endblock %}
 
 {% block content %}
-  <main class="flex-1 p-8 overflow-y-auto animate-fadeIn">
+<div id="macWindow" class="mac-window">
+  <div class="mac-header">
+    <div class="flex items-center">
+      <span id="btnClose" class="mac-btn red"></span>
+      <span id="btnMinimize" class="mac-btn yellow"></span>
+      <span id="btnMaximize" class="mac-btn green"></span>
+      <span class="ml-4 font-medium text-gray-600">Student Dashboard</span>
+    </div>
+    <div class="notification-wrapper" id="notifBtn">
+      <span class="material-icons notification-icon">notifications</span>
+      <span class="notification-count" id="notifCount">{{ notifications|length }}</span>
+      <div class="notification-dropdown" id="notifDropdown">
+        {% if notifications %}
+          {% for notif in notifications %}
+            <div class="notification-item">{{ notif }}</div>
+          {% endfor %}
+        {% else %}
+          <div class="notification-item text-gray-500">No new notifications</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-    <!-- Greeting -->
-    <h1 class="text-3xl font-bold text-gray-700 mb-8">👋 Welcome, {{ student_name }}!</h1>
+  <main id="macContent" class="flex-1 p-8 overflow-y-auto">
+    <!-- Student Profile -->
+    <div class="flex items-start justify-between mb-10" style="">
+      <div class="flex items-center gap-6">
+        <img src="{% static 'images/profile.png' %}" alt="Profile"
+             class="w-28 h-28 rounded-full object-cover shadow-md border">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">{{ student_name }}</h1>
+          <p class="text-gray-600"><strong>ID:</strong> {{ student_id }}</p>
+          <p class="text-gray-600"><strong>Grade:</strong> {{ grade }}</p>
+          <p class="text-gray-600"><strong>Email:</strong> <a href="mailto:{{ email }}" class="text-blue-600 hover:underline">{{ email }}</a></p>
+          <p class="text-gray-600"><strong>Phone:</strong> {{ phone }}</p>
+        </div>
+      </div>
+      
+    </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-      <!-- Attendance -->
-      <div class="stat-card p-6 flex items-center gap-5">
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="stat-card flex items-center gap-4">
+        <span class="material-icons text-4xl text-indigo-600">school</span>
+        <div><p class="text-sm text-gray-500">GPA</p><p class="text-2xl font-bold">{{ gpa }}</p></div>
+      </div>
+      <div class="stat-card flex items-center gap-4">
         <span class="material-icons text-4xl text-blue-600">event_available</span>
-        <div>
-          <h3 class="text-sm font-medium text-gray-500">Attendance</h3>
-          <p class="text-3xl font-extrabold text-blue-700">{{ attendance }}%</p>
-        </div>
+        <div><p class="text-sm text-gray-500">Attendance</p><p class="text-2xl font-bold">{{ attendance }}%</p></div>
       </div>
-
-      <!-- Average Score -->
-      <div class="stat-card p-6 flex items-center gap-5">
-        <span class="material-icons text-4xl text-yellow-500">school</span>
-        <div>
-          <h3 class="text-sm font-medium text-gray-500">Average Score</h3>
-          <p class="text-3xl font-extrabold text-yellow-600">{{ avg_score }}%</p>
-        </div>
+      <div class="stat-card flex items-center gap-4">
+        <span class="material-icons text-4xl text-green-600">check_circle</span>
+        <div><p class="text-sm text-gray-500">Credits</p><p class="text-2xl font-bold">{{ credits_earned }}/{{ credits_total }}</p></div>
       </div>
-
-      <!-- Fee Status -->
-      <div class="stat-card p-6 flex items-center gap-5">
-        <span class="material-icons text-4xl text-green-600">payment</span>
-        <div>
-          <h3 class="text-sm font-medium text-gray-500">Fee Status</h3>
-          <p class="text-3xl font-extrabold text-green-600">{{ fee_status }}</p>
-        </div>
+      <div class="stat-card flex items-center gap-4">
+        <span class="material-icons text-4xl text-red-500">report_problem</span>
+        <div><p class="text-sm text-gray-500">Incidents</p><p class="text-2xl font-bold">{{ incidents }}</p></div>
       </div>
-
     </div>
 
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div class="chart-box p-6">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Weekly Attendance</h3>
-        <canvas id="attendanceChart"></canvas>
-      </div>
-      <div class="chart-box p-6">
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">Test Scores</h3>
-        <canvas id="performanceChart"></canvas>
-      </div>
+      <div class="chart-box"><h3 class="font-semibold mb-4">Weekly Attendance</h3><canvas id="attendanceChart"></canvas></div>
+      <div class="chart-box"><h3 class="font-semibold mb-4">Test Scores</h3><canvas id="performanceChart"></canvas></div>
     </div>
 
-    <!-- Dropout Risk and Messages -->
-    <div class="mt-8 chart-box p-6">
-      <h3 class="text-lg font-semibold mb-4 text-gray-700">Status & Messages</h3>
-      <div class="mb-4">
-        <p class="text-lg font-medium text-gray-700">Dropout Risk: <span class="font-bold {{ dropout_risk|lower }}-text">{{ dropout_risk }}</span></p>
-        <style>
-          .low-text { color: green; }
-          .medium-text { color: orange; }
-          .high-text { color: red; }
-        </style>
-      </div>
-      <ul class="divide-y divide-gray-200">
+    <!-- Messages -->
+    <div class="mt-8 chart-box">
+      <h3 class="font-semibold mb-4">Status & Messages</h3>
+      <p class="text-lg">Dropout Risk: <span class="font-bold {{ dropout_risk|lower }}-text">{{ dropout_risk }}</span></p>
+      <ul class="mt-4 divide-y divide-gray-200">
         {% for message in messages %}
           <li class="py-2">{{ message|safe }}</li>
         {% endfor %}
       </ul>
     </div>
-
   </main>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-  <script>
-    // Attendance Chart
-    try {
-      const attendanceChartCtx = document.getElementById('attendanceChart').getContext('2d');
-      new Chart(attendanceChartCtx, {
-        type: 'line',
-        data: {
-          labels: {{ attendance_weeks|safe }},
-          datasets: [{
-            label: 'Attendance %',
-            data: {{ attendance_values|safe }},
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.15)',
-            fill: true,
-            tension: 0.35,
-            borderWidth: 3,
-            pointRadius: 6,
-            pointHoverRadius: 8
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              max: 100,
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    } catch (e) {
-      console.error('Error rendering attendance chart:', e);
-    }
+<script>
+  // Mac controls
+  const macWindow = document.getElementById("macWindow");
+  const macContent = document.getElementById("macContent");
+  const btnClose = document.getElementById("btnClose");
+  const btnMinimize = document.getElementById("btnMinimize");
+  const btnMaximize = document.getElementById("btnMaximize");
+  let isMaximized = false, isMinimized = false;
 
-    // Performance Chart
-    try {
-      const performanceChartCtx = document.getElementById('performanceChart').getContext('2d');
-      new Chart(performanceChartCtx, {
-        type: 'bar',
-        data: {
-          labels: {{ score_tests|safe }},
-          datasets: [{
-            label: 'Scores',
-            data: {{ score_values|safe }},
-            borderRadius: 14,
-            backgroundColor: ['#2563eb', '#dc2626', '#f59e0b', '#16a34a'].slice(0, {{ score_tests|length|safe }})
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              max: 100,
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    } catch (e) {
-      console.error('Error rendering performance chart:', e);
-    }
-  </script>
+  btnClose.onclick = () => macWindow.style.display = "none";
+  btnMinimize.onclick = () => {
+    if (!isMinimized) { macContent.style.display = "none"; macWindow.style.height = "60px"; }
+    else { macContent.style.display = "block"; macWindow.style.height = "90vh"; }
+    isMinimized = !isMinimized;
+  };
+  btnMaximize.onclick = () => {
+    if (!isMaximized) { macWindow.style.position="fixed"; macWindow.style.top="0"; macWindow.style.left="0";
+      macWindow.style.width="100%"; macWindow.style.height="100vh"; macWindow.style.margin="0"; macWindow.style.borderRadius="0"; }
+    else { macWindow.style.position="static"; macWindow.style.width="90%"; macWindow.style.height="90vh"; macWindow.style.margin="2rem auto"; macWindow.style.borderRadius="14px"; }
+    macContent.style.display="block"; isMaximized=!isMaximized; if (isMaximized) isMinimized=false;
+  };
+
+  // Notifications
+  const notifBtn = document.getElementById("notifBtn");
+  const notifDropdown = document.getElementById("notifDropdown");
+  notifBtn.addEventListener("click", () => notifDropdown.classList.toggle("active"));
+  window.addEventListener("click", (e) => { if (!notifBtn.contains(e.target)) notifDropdown.classList.remove("active"); });
+
+  // Attendance Chart
+  new Chart(document.getElementById('attendanceChart'), {
+    type: 'line',
+    data: { labels: {{ attendance_weeks|safe }}, datasets:[{label:'Attendance %',data:{{ attendance_values|safe }},
+      borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.15)',fill:true,tension:0.35,borderWidth:3}] },
+    options:{scales:{y:{max:100,beginAtZero:true}}}
+  });
+
+  // Performance Chart
+  new Chart(document.getElementById('performanceChart'), {
+    type: 'bar',
+    data: { labels: {{ score_tests|safe }}, datasets:[{label:'Scores',data:{{ score_values|safe }},
+      borderRadius:14,backgroundColor:['#2563eb','#dc2626','#f59e0b','#16a34a'].slice(0,{{ score_tests|length|safe }})}] },
+    options:{scales:{y:{max:100,beginAtZero:true}}}
+  });
+</script>
 {% endblock %}

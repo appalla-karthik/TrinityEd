@@ -1,7 +1,4 @@
-{% extends 'base.html' %}
 {% load static %}
-
-{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +11,7 @@
 
   <style>
     body {
-      background: linear-gradient(135deg, #f0f4ff, #e6f0ff, #fefefe);
+      background: none;
       background-size: 300% 300%;
       animation: gradientShift 15s ease infinite;
       font-family: 'Inter', system-ui, sans-serif;
@@ -28,7 +25,7 @@
       100% { background-position: 0% 50%; }
     }
     @keyframes fadeInBody { to { opacity: 1; } }
-
+    /* Mac Window */
     .mac-window {
       width: 90%;
       margin: 2rem auto;
@@ -58,23 +55,46 @@
     .yellow { background:#facc15; }
     .green { background:#22c55e; }
     .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
-
+    /* Table & badges */
     .table-row { transition: all 0.3s ease; cursor: pointer; }
     .table-row:hover { background: #e0e7ff; transform: scale(1.02); }
-
     .badge { padding: 3px 12px; border-radius: 9999px; font-weight: 600; }
     .badge-red { background: #fee2e2; color: #b91c1c; }
     .badge-yellow { background: #fef9c3; color: #b45309; }
     .badge-green { background: #d1fae5; color: #047857; }
-
+    /* Chart box */
     .chart-box { transition: transform 0.35s ease; border-radius: 18px; }
     .chart-box:hover { transform: scale(1.05); }
-
+    /* Student cards */
     .student-card { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
     .student-card:hover { transform: scale(1.05); box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+    /* Dock styles */
+    .dock {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      border-radius: 20px; padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .app { width: 70px; height: 70px; position: relative; transition: all 200ms; }
+    .app img { width: 100%; height: 100%; border-radius: 14px; transition: transform 200ms ease; }
+    .app a { display: block; width: 100%; height: 100%; }
+    .app:hover img { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); transform: translateY(-4px); }
+    .tooltip { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); opacity: 0;
+      transition: 150ms; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: white; white-space: nowrap; }
+    .app:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .app::after { content: ""; position: absolute; bottom: -18%; left: 50%; width: 75%; height: 35%; transform: translateX(-50%) scaleY(-1);
+      background: inherit; opacity: 0.18; border-radius: 14px; filter: blur(6px); }
+    .app:hover { width: 95px; height: 95px; margin-top: -35px; }
+    .app.active .indicator { opacity: 1; }
+    .indicator { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 8px; background: white; border-radius: 50%; opacity: 0; }
   </style>
 </head>
-<body class="flex flex-col h-screen">
+<body class="flex flex-col h-screen bg-cover bg-center bg-fixed" 
+      style="background-image: url('{% static "img/mentor_wallpaper.webp" %}');">
 
   <!-- ===== Mac Window (Attendance) ===== -->
   <div id="macWindow" class="mac-window">
@@ -97,67 +117,44 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
           <p class="text-gray-500 font-medium">Total Students</p>
-          <p class="text-2xl font-bold text-blue-700">120</p>
+          <p class="text-2xl font-bold text-blue-700">{{ total_students }}</p>
         </div>
         <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
           <p class="text-gray-500 font-medium">Average Attendance</p>
-          <p class="text-2xl font-bold text-green-600">78%</p>
+          <p class="text-2xl font-bold text-green-600">{{ avg_attendance }}%</p>
         </div>
         <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
           <p class="text-gray-500 font-medium">Students At Risk</p>
-          <p class="text-2xl font-bold text-red-600">15</p>
+          <p class="text-2xl font-bold text-red-600">{{ at_risk_students }}</p>
         </div>
       </div>
 
       <!-- Student Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <!-- Student A -->
+        {% for student in student_attendance %}
         <div class="student-card bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-6 flex flex-col items-center">
           <div class="w-24 h-24 relative">
             <svg class="w-24 h-24 transform -rotate-90">
               <circle cx="48" cy="48" r="48" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-              <circle cx="48" cy="48" r="48" fill="none" stroke="#2563eb" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="65"/>
+              <circle cx="48" cy="48" r="48" fill="none" stroke="{% if student.attendance < 70 %}#ef4444{% elif student.attendance < 80 %}#facc15{% else %}#22c55e{% endif %}" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="{{ student.attendance|floatformat:0 }}"/>
             </svg>
-            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">65%</span>
+            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">{{ student.attendance|floatformat:0 }}%</span>
           </div>
-          <p class="mt-4 font-medium text-gray-700">Student A</p>
-          <p class="text-gray-500 text-sm">Class 1</p>
+          <p class="mt-4 font-medium text-gray-700">{{ student.name }}</p>
+          <p class="text-gray-500 text-sm">{{ student.class_name }}</p>
         </div>
-
-        <!-- Student B -->
-        <div class="student-card bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-6 flex flex-col items-center">
-          <div class="w-24 h-24 relative">
-            <svg class="w-24 h-24 transform -rotate-90">
-              <circle cx="48" cy="48" r="48" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-              <circle cx="48" cy="48" r="48" fill="none" stroke="#16a34a" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="85"/>
-            </svg>
-            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">85%</span>
-          </div>
-          <p class="mt-4 font-medium text-gray-700">Student B</p>
-          <p class="text-gray-500 text-sm">Class 1</p>
-        </div>
-
-        <!-- Student C -->
-        <div class="student-card bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-6 flex flex-col items-center">
-          <div class="w-24 h-24 relative">
-            <svg class="w-24 h-24 transform -rotate-90">
-              <circle cx="48" cy="48" r="48" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-              <circle cx="48" cy="48" r="48" fill="none" stroke="#facc15" stroke-width="8" stroke-dasharray="301" stroke-dashoffset="301" class="attendance-circle" data-percent="70"/>
-            </svg>
-            <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-700">70%</span>
-          </div>
-          <p class="mt-4 font-medium text-gray-700">Student C</p>
-          <p class="text-gray-500 text-sm">Class 2</p>
-        </div>
+        {% endfor %}
       </div>
 
       <!-- Filter -->
       <div class="mb-4 flex items-center gap-4">
         <label class="font-medium text-gray-700">Filter by Class:</label>
-        <select id="classFilter" class="border border-gray-300 rounded-lg p-2">
+        <select id="classFilter" class="border border-gray-200 rounded-lg p-2">
           <option value="all">All Classes</option>
           <option value="Class 1">Class 1</option>
           <option value="Class 2">Class 2</option>
+          <option value="Class 3">Class 3</option>
+          <option value="Class 4">Class 4</option>
         </select>
       </div>
 
@@ -174,42 +171,20 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="px-6 py-4">1</td>
-              <td class="px-6 py-4 font-medium text-gray-700">Student A</td>
-              <td class="px-6 py-4">Class 1</td>
+            {% for student in student_attendance %}
+            <tr class="table-row">
+              <td class="px-6 py-4">{{ forloop.counter }}</td>
+              <td class="px-6 py-4 font-medium text-gray-700">{{ student.name }}</td>
+              <td class="px-6 py-4">{{ student.class_name }}</td>
               <td class="px-6 py-4">
                 <div class="bg-gray-200 rounded-full h-3 w-full">
-                  <div class="bg-blue-600 h-3 rounded-full" style="width:65%"></div>
+                  <div class="bg-{% if student.attendance < 70 %}red-600{% elif student.attendance < 80 %}yellow-400{% else %}green-600{% endif %} h-3 rounded-full" style="width:{{ student.attendance }}%"></div>
                 </div>
-                <span class="text-sm text-gray-600">65%</span>
+                <span class="text-sm text-gray-600">{{ student.attendance }}%</span>
               </td>
-              <td class="px-6 py-4"><span class="badge badge-red">At Risk</span></td>
+              <td class="px-6 py-4"><span class="badge badge-{% if student.attendance < 70 %}red{% elif student.attendance < 80 %}yellow{% else %}green{% endif %}">{{ student.status }}</span></td>
             </tr>
-            <tr>
-              <td class="px-6 py-4">2</td>
-              <td class="px-6 py-4 font-medium text-gray-700">Student B</td>
-              <td class="px-6 py-4">Class 1</td>
-              <td class="px-6 py-4">
-                <div class="bg-gray-200 rounded-full h-3 w-full">
-                  <div class="bg-green-600 h-3 rounded-full" style="width:85%"></div>
-                </div>
-                <span class="text-sm text-gray-600">85%</span>
-              </td>
-              <td class="px-6 py-4"><span class="badge badge-green">Good</span></td>
-            </tr>
-            <tr>
-              <td class="px-6 py-4">3</td>
-              <td class="px-6 py-4 font-medium text-gray-700">Student C</td>
-              <td class="px-6 py-4">Class 2</td>
-              <td class="px-6 py-4">
-                <div class="bg-gray-200 rounded-full h-3 w-full">
-                  <div class="bg-yellow-400 h-3 rounded-full" style="width:70%"></div>
-                </div>
-                <span class="text-sm text-gray-600">70%</span>
-              </td>
-              <td class="px-6 py-4"><span class="badge badge-yellow">Average</span></td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -221,6 +196,18 @@
       </div>
     </main>
   </div>
+
+  <!-- ===== Dock ===== -->
+  <nav id="dock" class="dock">
+    <ul class="flex list-none p-0 gap-3">
+      <li class="app"><a href="{% url 'mentor_dashboard' %}"><img src="{% static 'img/mentordashboard.png' %}" alt="Performance"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
+      <li class="app active"><a href="javascript:void(0)" id="openAttendance"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="#" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+    </ul>
+  </nav>
 
   <script>
     const macWindow = document.getElementById("macWindow");
@@ -239,10 +226,18 @@
     btnMinimize.addEventListener("click", () => {
       if (!isMinimized && !isMaximized) {
         macContent.style.display = "none";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
         macWindow.style.height = "auto";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
       } else if (isMinimized) {
         macContent.style.display = "block";
-        macWindow.style.height = "90vh";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "auto";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
       }
       isMinimized = !isMinimized;
     });
@@ -259,15 +254,26 @@
       } else {
         macWindow.style.position = "static";
         macWindow.style.width = "90%";
-        macWindow.style.height = "90vh";
         macWindow.style.margin = "2rem auto";
+        macWindow.style.height = "auto";
         macWindow.style.borderRadius = "14px";
       }
       isMaximized = !isMaximized;
       if (isMaximized) isMinimized = false;
     });
 
-    // Circular Attendance Animation
+    // Dock bounce effect
+    document.querySelectorAll(".app").forEach(app => {
+      app.addEventListener("click", () => {
+        document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
+        app.classList.add("active");
+        const img = app.querySelector("img");
+        img.classList.add("bounce");
+        img.addEventListener("animationend", () => img.classList.remove("bounce"), { once: true });
+      });
+    });
+
+    // Animate student circular bars
     document.querySelectorAll('.attendance-circle').forEach(circle => {
       const percent = circle.getAttribute('data-percent');
       const offset = 301 - (301 * percent / 100);
@@ -277,19 +283,18 @@
       }, 300);
     });
 
-    // Attendance Chart
+    // Chart.js
     const ctx = document.getElementById('attendanceChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(37,99,235,0.35)');
-    gradient.addColorStop(1, 'rgba(37,99,235,0.05)');
-
+    const gradient = ctx.createLinearGradient(0,0,0,300);
+    gradient.addColorStop(0,'rgba(37,99,235,0.35)');
+    gradient.addColorStop(1,'rgba(37,99,235,0.05)');
     new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Class 1','Class 2','Class 3','Class 4'],
+        labels: JSON.parse('{{ chart_labels }}'),
         datasets: [{
           label: 'Average Attendance %',
-          data: [78, 70, 85, 90],
+          data: JSON.parse('{{ chart_data }}'),
           backgroundColor: gradient,
           borderColor: '#2563eb',
           borderWidth: 2,
@@ -309,9 +314,7 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                return context.dataset.label + ': ' + context.raw + '%';
-              }
+              label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; }
             }
           }
         },
@@ -320,12 +323,12 @@
     });
 
     // Export CSV
-    document.getElementById('exportBtn').addEventListener('click', function () {
+    document.getElementById('exportBtn').addEventListener('click', function(){
       let table = document.getElementById('attendanceTable');
       let rows = Array.from(table.querySelectorAll('tr'));
       let csvContent = rows.map(row => {
         let cols = Array.from(row.querySelectorAll('th, td'));
-        return cols.map(col => col.innerText.replace(/,/g, "")).join(",");
+        return cols.map(col => col.innerText.replace(/,/g,"")).join(",");
       }).join("\n");
       let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       let link = document.createElement("a");
@@ -334,8 +337,8 @@
       link.click();
     });
 
-    // Filter Attendance Table
-    document.getElementById('classFilter').addEventListener('change', function () {
+    // Filter by class
+    document.getElementById('classFilter').addEventListener('change', function(){
       const filter = this.value;
       document.querySelectorAll('#attendanceTable tbody tr').forEach(row => {
         const className = row.cells[2].innerText;
@@ -345,4 +348,3 @@
   </script>
 </body>
 </html>
-{% endblock %}

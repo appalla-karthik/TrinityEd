@@ -118,9 +118,13 @@
   @keyframes fadeUpChart{to{opacity:1; transform:translateY(0);}}
   </style>
 </head>
+<body class="flex flex-col min-h-screen bg-cover bg-center bg-fixed relative" 
+      style="background-image: url('{% static "img/mentor_wallpaper.webp" %}');">
+  
+  <!-- optional overlay for contrast -->
+  <div class="absolute inset-0 bg-black/20"></div>
 
-<body class="flex flex-col min-h-screen">
-  <div id="macWindow" class="mac-window flex flex-col h-[90vh]">
+  <div id="macWindow" class="mac-window flex flex-col h-[90vh] relative z-10">
     <div class="mac-header">
       <span id="btnClose" class="mac-btn red"></span>
       <span id="btnMinimize" class="mac-btn yellow"></span>
@@ -187,7 +191,6 @@
       </div>
     </main>
   </div>
-
 <script>
   // macOS Window Controls
   const macWindow = document.getElementById("macWindow");
@@ -199,29 +202,39 @@
   let isMaximized = false;
   let isMinimized = false;
 
+  // 🔴 Close → hide window
   btnClose.addEventListener("click", () => {
     macWindow.style.display = "none";
   });
 
+  // 🟡 Minimize → toggle content visibility based on state
   btnMinimize.addEventListener("click", () => {
-    if (!isMinimized && !isMaximized) {
+    if (!isMinimized) {
+      // If maximized, restore to normal with content visible
+      if (isMaximized) {
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "90vh"; // Consistent height
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+        macContent.style.display = "block"; // Keep content visible
+        isMaximized = false;
+        return; // Exit after restoring
+      }
+      // From normal state, hide content
       macContent.style.display = "none";
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "auto";
+      macWindow.style.height = "60px"; // Minimum height for header visibility
       macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
-    } else if (isMinimized) {
+    } else {
+      // Restore from minimized state
       macContent.style.display = "block";
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "auto";
+      macWindow.style.height = "90vh";
       macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
     }
     isMinimized = !isMinimized;
   });
 
+  // 🟢 Maximize → toggle fullscreen
   btnMaximize.addEventListener("click", () => {
     if (!isMaximized) {
       macWindow.style.position = "fixed";
@@ -234,12 +247,13 @@
     } else {
       macWindow.style.position = "static";
       macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
       macWindow.style.margin = "2rem auto";
-      macWindow.style.height = "auto";
       macWindow.style.borderRadius = "14px";
     }
+    macContent.style.display = "block";
     isMaximized = !isMaximized;
-    if (isMaximized) isMinimized = false;
+    if (isMaximized) isMinimized = false; // Reset minimized state
   });
 
   // Bar Chart

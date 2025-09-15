@@ -5,6 +5,7 @@
 
 {% block extra_head %}
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { 
       background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff); 
@@ -28,15 +29,93 @@
       transform: scale(1.02); 
       box-shadow: 0 12px 28px rgba(37,99,235,0.25); 
     }
+
+    /* macOS window styling */
+    .mac-window {
+      width: 90%;
+      margin: 2rem auto;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.5s ease;
+    }
+    .mac-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .mac-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .mac-btn.red { background: #ff5f57; }
+    .mac-btn.yellow { background: #ffbd2f; }
+    .mac-btn.green { background: #28c840; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 {% endblock %}
 
 {% block content %}
-  <div class="font-sans p-8">
-    <h1 class="text-3xl font-bold text-gray-700 mb-6">💬 Counselling & Mentorship</h1>
+<div id="macWindow" class="mac-window flex flex-col h-[90vh]">
+  <!-- macOS header -->
+  <div class="mac-header">
+    <span id="btnClose" class="mac-btn red"></span>
+    <span id="btnMinimize" class="mac-btn yellow"></span>
+    <span id="btnMaximize" class="mac-btn green"></span>
+    <span class="ml-4 font-medium text-gray-600">💬 Counselling & Mentorship</span>
+  </div>
 
-    <!-- Sessions -->
+  <!-- Main content -->
+  <main id="macContent" class="flex-1 p-8 overflow-y-auto animate-fadeIn">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Progress Overview -->
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">📊 Your Progress</h3>
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div class="p-3 bg-green-50 rounded-lg">
+            <p class="text-2xl font-bold text-green-600">85%</p>
+            <p class="text-sm text-gray-600">Attendance</p>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-lg">
+            <p class="text-2xl font-bold text-blue-600">78%</p>
+            <p class="text-sm text-gray-600">Assignments</p>
+          </div>
+          <div class="p-3 bg-yellow-50 rounded-lg">
+            <p class="text-2xl font-bold text-yellow-600">60%</p>
+            <p class="text-sm text-gray-600">Well-being</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk Prediction -->
+      <div class="card bg-red-50 border border-red-300">
+        <h3 class="text-lg font-semibold text-red-700 mb-2">⚠️ Risk Prediction</h3>
+        <p class="text-gray-700">Current dropout risk: 
+          <span class="font-bold text-red-600">High</span>
+        </p>
+        <p class="text-sm text-gray-600 mt-1">
+          Recommendation: Book a stress counselling session ASAP.
+        </p>
+      </div>
+
+      <!-- Performance Trend -->
+      <div class="card col-span-1 lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">📈 Performance Trend</h3>
+        <canvas id="progressChart"></canvas>
+      </div>
+
+      <!-- Upcoming Sessions -->
       <div class="card">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Upcoming Sessions</h3>
         <ul class="space-y-3">
@@ -51,10 +130,23 @@
         </ul>
       </div>
 
-      <!-- Book Slot -->
+      <!-- Recommended Sessions -->
       <div class="card">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">🎯 Recommended for You</h3>
+        <ul class="space-y-3">
+          <li class="p-3 bg-indigo-50 rounded-lg">
+            🧠 Stress Relief Workshop – Suggested due to high stress score
+          </li>
+          <li class="p-3 bg-purple-50 rounded-lg">
+            📘 Study Skills Mentoring – Suggested due to low assignment completion
+          </li>
+        </ul>
+      </div>
+
+      <!-- Book Slot -->
+      <div class="card col-span-1 lg:col-span-2">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Book a Session</h3>
-        <form class="space-y-4">
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="text" placeholder="Your Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
           <input type="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
           <select class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -63,9 +155,75 @@
             <option>Ms. Patel</option>
           </select>
           <input type="datetime-local" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition">Book</button>
+          <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition col-span-1 md:col-span-2">Book</button>
         </form>
       </div>
+
     </div>
-  </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const macWindow = document.getElementById("macWindow");
+  const macContent = document.getElementById("macContent");
+  const btnClose = document.getElementById("btnClose");
+  const btnMinimize = document.getElementById("btnMinimize");
+  const btnMaximize = document.getElementById("btnMaximize");
+
+  let isMaximized = false;
+  let isMinimized = false;
+
+  btnClose.addEventListener("click", () => {
+    macWindow.style.display = "none";
+  });
+
+  btnMinimize.addEventListener("click", () => {
+    if (!isMinimized) {
+      macContent.style.display = "none";
+      macWindow.style.height = "60px";
+    } else {
+      macContent.style.display = "block";
+      macWindow.style.height = "90vh";
+    }
+    isMinimized = !isMinimized;
+  });
+
+  btnMaximize.addEventListener("click", () => {
+    if (!isMaximized) {
+      macWindow.style.position = "fixed";
+      macWindow.style.top = "0";
+      macWindow.style.left = "0";
+      macWindow.style.width = "100%";
+      macWindow.style.height = "100vh";
+      macWindow.style.margin = "0";
+      macWindow.style.borderRadius = "0";
+    } else {
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
+    }
+    macContent.style.display = "block";
+    isMaximized = !isMaximized;
+    if (isMaximized) isMinimized = false;
+  });
+
+  // Chart.js progress chart
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ["Aug", "Sep", "Oct", "Nov"],
+      datasets: [
+        { label: "Attendance %", data: [85, 80, 78, 82], borderColor: "#3b82f6", fill: false },
+        { label: "Assignments %", data: [75, 72, 65, 70], borderColor: "#10b981", fill: false },
+        { label: "Stress Score", data: [50, 60, 70, 65], borderColor: "#f59e0b", fill: false }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+  });
+</script>
 {% endblock %}

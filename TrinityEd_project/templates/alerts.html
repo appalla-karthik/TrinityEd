@@ -1,6 +1,14 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
-{% block extra_head %}
+
+{% block title %}Alerts | TrinityEd{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
@@ -136,9 +144,35 @@ body {
 @keyframes gradientToast { 0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;} }
 #toast:hover { transform:translateX(-50%) scale(1.08); box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 20px rgba(59,130,246,0.6); }
 @keyframes bounceToast { 0%{transform:translateX(-50%) scale(0.5);opacity:0;}60%{transform:translateX(-50%) scale(1.2);opacity:1;}80%{transform:translateX(-50%) scale(0.95);}100%{transform:translateX(-50%) scale(1);} }
+
+/* Dock container */
+.dock {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+  z-index: 60;
+}
+
+/* Icon base size */
+.app:hover img { 
+  transform: translateY(-6px); 
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)); 
+}
+
+
 </style>
-{% endblock %}
-{% block content %}
+</head>
+<body class="flex flex-col h-screen bg-cover bg-center bg-fixed" 
+      style="background-image: url('{% static "img/mentor_wallpaper.webp" %}');">
+
 <!-- Mac Window -->
 <div id="alertWindow">
   <div id="alertHeader">
@@ -176,8 +210,19 @@ body {
 
 <!-- Toast -->
 <div id="toast">Alert marked as read!</div>
-{% endblock %}
-{% block extra_scripts %}
+
+<!-- Dock -->
+  <nav id="dock" class="dock">
+    <!-- <ul class="flex list-none p-0 gap-3">
+      <li class="app"><a href="{% url 'mentor_dashboard' %}"><img src="{% static 'img/mentordashboard.png' %}" alt="Performance"/><span class="tooltip">Overview</span></a><div class="indicator"></div></li>
+      <li class="app active"><a href="javascript:void(0)" id="openAttendance"><img src="{% static 'img/attendance.png' %}" alt="Attendance"/><span class="tooltip">Attendance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}" alt="Performance"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}" alt="Fee Status"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}" alt="Alerts"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="#" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}" alt="Logout"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+    </ul> -->
+  </nav>
+
 <script>
 /* ===== Mac Buttons ===== */
 const alertWindow = document.getElementById("alertWindow");
@@ -235,6 +280,26 @@ btnMaximize.onclick = () => {
   if (isMax) isMin = false;
 };
 
+// Mac dock wave hover effect
+const apps = document.querySelectorAll(".app img");
+
+apps.forEach((icon, i) => {
+  icon.addEventListener("mousemove", (e) => {
+    apps.forEach((otherIcon, j) => {
+      let distance = Math.abs(i - j); // distance from hovered icon
+      let scale = 1.5 - distance * 0.2; // smaller scale for farther icons
+      if (scale < 1) scale = 1; 
+      otherIcon.style.transform = `scale(${scale}) translateY(-6px)`;
+    });
+  });
+
+  icon.addEventListener("mouseleave", () => {
+    apps.forEach((otherIcon) => {
+      otherIcon.style.transform = "scale(1) translateY(0)";
+    });
+  });
+});
+
 /* ===== Toast Utility ===== */
 const toast = document.getElementById("toast");
 function showToast(message){
@@ -242,6 +307,7 @@ function showToast(message){
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 2000);
 }
+
 
 /* ===== Mark as Read ===== */
 document.querySelectorAll(".btn-read").forEach(btn=>{
@@ -330,4 +396,7 @@ setInterval(()=>{
   createAlert(randomAlert);
 }, Math.random()*5000 + 7000);
 </script>
+
+</body>
+</html>
 {% endblock %}
