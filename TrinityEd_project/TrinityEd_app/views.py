@@ -1,189 +1,28 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.db.models import Avg, Max, Min
 from datetime import date, timedelta
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from accounts.models import User
 import json
+from django.shortcuts import render
+
+
+
+from TrinityEd_app.utils.ai_insights import AIInsightsGenerator
+from TrinityEd_app.utils.ml_models import MLPredictor
+from TrinityEd_app.utils.risk_calculator import RiskCalculator
 import joblib
-from django.db.models import Avg, Max, Min
 import numpy as np
-from TrinityEd_app.models import Alert, Learner, Student, Attendance, Performance
+from TrinityEd_app.models import Alert, Student, Attendance, Performance
+from TrinityEd_app.forms import StudentForm  # make sure this exists
 
 
-def learner_list(request):
-    learners = Learner.objects.all()
-    return render(request, "learner_list.html", {"learners": learners})
-
-def learner_detail(request, pk):
-    learner = get_object_or_404(Learner, pk=pk)
-    return render(request, "learner_detail.html", {"learner": learner})
-# Home page
-def home(request):
-    return render(request, 'home.html')
-
-# Mentor Dashboard
-@login_required
-def mentor_dashboard(request):
-    # Load the ML model
-    model_path = 'ml_models/at_risk_model.pkl'
-    try:
-        model = joblib.load(model_path)
-    except FileNotFoundError:
-        return render(request, 'mentor_dashboard.html', {'error': 'ML model not found. Re-run train_ml_model.py.'})
-
-    # Get all students
-    students = Student.objects.all()
-
-    # Predict at-risk for each student and update
-    at_risk_count = 0
-    for student in students:
-        features = np.array([[student.attendance_percentage, student.average_score]])
-        prediction = model.predict(features)[0]
-        student.is_at_risk = bool(prediction)
-        student.save()
-        if student.is_at_risk:
-            at_risk_count += 1
-            if not Alert.objects.filter(title=f"At-Risk Alert for {student.name}").exists():
-                Alert.objects.create(
-                    title=f"At-Risk Alert for {student.name}",
-                    description=f"Low performance indicators detected (Attendance: {student.attendance_percentage}%, Score: {student.average_score}%).",
-                    type='danger',
-                    icon='warning'
-                )
-
-    # Other stats
-    total_students = students.count()
-    alerts_sent = Alert.objects.filter(is_read=False).count()
-
-    # Prepare dynamic alerts list
-    alerts = [
-        {"student": student.name, "issue": f"Low Attendance ({student.attendance_percentage}%)", "status": "Critical"}
-        for student in students if student.is_at_risk
-    ][:3]
-
-    # Dynamic chart data
-    attendance_labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5']
-    attendance_data = []
-    for week in attendance_labels:
-        week_attendance = Attendance.objects.filter(week=week).aggregate(avg=Avg('percentage'))['avg'] or 0
-        attendance_data.append(week_attendance)
-
-    performance_subjects = ['Math', 'Science', 'English', 'History']
-    performance_data = []
-    for subject in performance_subjects:
-        subject_scores = Performance.objects.filter(test_name=subject).aggregate(avg=Avg('score'))['avg'] or 0
-        performance_data.append(subject_scores)
-
-    context = {
-        "total_students": total_students,
-        "at_risk": at_risk_count,
-        "alerts_sent": alerts_sent,
-        "alerts": alerts,
-        "attendance_labels": json.dumps(attendance_labels),
-        "attendance_data": json.dumps(attendance_data),
-        "performance_subjects": json.dumps(performance_subjects),
-        "performance_data": json.dumps(performance_data),
-    }
-    return render(request, "mentor_dashboard.html", context)
-
-# Attendance page
-@login_required
-def attendance_view(request):
-    # Get all students
-    students = Student.objects.all()
-
-    # Calculate total students
-    total_students = students.count()
-
-    # Calculate average attendance
-    avg_attendance = Attendance.objects.aggregate(avg=Avg('percentage'))['avg'] or 0
-
-    # Count at-risk students (using ML prediction or threshold, e.g., <70%)
-    at_risk_students = Student.objects.filter(is_at_risk=True).count()
-
-    # Fetch attendance data for student cards and table
-    student_attendance = []
-    for student in students:
-        latest_attendance = Attendance.objects.filter(student=student).order_by('-recorded_date').first()
-        attendance_percent = latest_attendance.percentage if latest_attendance else student.attendance_percentage
-        student_attendance.append({
-            'name': student.name,
-            'class_name': f"Class {student.id % 2 + 1}",  # Simple class assignment (1 or 2 based on ID)
-            'attendance': attendance_percent,
-            'status': 'At Risk' if attendance_percent < 70 else 'Average' if attendance_percent < 80 else 'Good'
-        })
-
-    # Chart data: Average attendance per class (simulated classes 1-4)
-    class_attendance = {}
-    for student in students:
-        latest_attendance = Attendance.objects.filter(student=student).order_by('-recorded_date').first()
-        attendance = latest_attendance.percentage if latest_attendance else student.attendance_percentage
-        class_name = f"Class {student.id % 4 + 1}"  # Distribute across 4 classes
-        class_attendance[class_name] = class_attendance.get(class_name, []) + [attendance]
-    chart_labels = [f"Class {i}" for i in range(1, 5)]
-    chart_data = [sum(class_attendance.get(f"Class {i}", [0])) / len(class_attendance.get(f"Class {i}", [1])) for i in range(1, 5)]
-
-    # Prepare context
-    context = {
-        'total_students': total_students,
-        'avg_attendance': round(avg_attendance, 2) if avg_attendance else 0,
-        'at_risk_students': at_risk_students,
-        'student_attendance': student_attendance,
-        'chart_labels': json.dumps(chart_labels),
-        'chart_data': json.dumps(chart_data),
-    }
-    return render(request, 'attendance.html', context)
-
-# Performance page
-@login_required
-def performance_view(request):
-    # Get all students
-    students = Student.objects.all()
-
-    # Calculate average score
-    avg_score = Performance.objects.aggregate(avg=Avg('score'))['avg'] or 0
-
-    # Top student (highest average_score)
-    top_student = Student.objects.order_by('-average_score').first()
-    top_student_name = top_student.name if top_student else 'N/A'
-
-    # Needs improvement (count of students with average_score < 70)
-    needs_improvement = Student.objects.filter(average_score__lt=70).count()
-
-    # Highest and lowest scores from Performance records
-    highest_score = Performance.objects.aggregate(max_score=Max('score'))['max_score'] or 0
-    lowest_score = Performance.objects.aggregate(min_score=Min('score'))['min_score'] or 0
-
-    # Class-wise average performance (simulate classes 1-4)
-    class_performance = {}
-    for student in students:
-        class_name = f"Class {student.id % 4 + 1}"  # Distribute across 4 classes
-        class_performance[class_name] = class_performance.get(class_name, []) + [student.average_score]
-    chart_labels = [f"Class {i}" for i in range(1, 5)]
-    chart_data = [sum(class_performance.get(f"Class {i}", [0])) / len(class_performance.get(f"Class {i}", [1])) for i in range(1, 5)]
-
-    # Performance distribution for pie chart (counts of Good, Average, Needs Improvement)
-    good_count = Student.objects.filter(average_score__gte=80).count()
-    average_count = Student.objects.filter(average_score__gte=70, average_score__lt=80).count()
-    needs_improvement_count = Student.objects.filter(average_score__lt=70).count()
-
-    # Prepare context
-    context = {
-        'avg_score': round(avg_score, 2) if avg_score else 0,
-        'top_student': top_student_name,
-        'needs_improvement': needs_improvement,
-        'highest_score': highest_score,
-        'lowest_score': lowest_score,
-        'chart_labels': json.dumps(chart_labels),
-        'chart_data': json.dumps(chart_data),
-        'pie_data': json.dumps([good_count, average_count, needs_improvement_count]),
-    }
-    return render(request, 'performance.html', context)
-
-# Fee Status page
 @login_required
 def fee_status(request):
+    # Sample student fee data (replace with real DB queries if needed)
     students = [
         {'name': 'Student A', 'total_fee': 50000, 'paid': 45000, 'pending': 5000, 'due_date': '2025-09-20'},
         {'name': 'Student B', 'total_fee': 60000, 'paid': 60000, 'pending': 0, 'due_date': '-'},
@@ -210,44 +49,214 @@ def fee_status(request):
     }
     return render(request, 'feestatus.html', context)
 
-# Alerts page
+User = get_user_model()
+
+# ------------------- Student Management -------------------
+
 @login_required
-def alerts_view(request):
-    # Load the ML model
-    model_path = 'ml_models/at_risk_model.pkl'
+def add_student(request):
+    # Logged-in users with role='student'
+    logged_in_students = User.objects.filter(last_login__isnull=False, role='student')
+    existing_student_ids = Student.objects.values_list('user_id', flat=True)
+    eligible_users = logged_in_students.exclude(id__in=existing_student_ids)
+
+    if request.method == "POST":
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('learner_list')
+    else:
+        form = StudentForm()
+        form.fields['user'].queryset = eligible_users
+
+    return render(request, "add_student.html", {"form": form})
+
+
+@login_required
+def studnet_list(request):
+    # Sirf un Learners ko lo jinka linked User student hai
+    learners = User.objects.select_related("user").filter(user__role="student")
+    return render(
+        request,
+        "student_list.html",   # 👈 full path dena zaroori hai
+        {"students": learners}
+    )
+
+
+@login_required
+def learner_detail(request, pk):
+    learner = get_object_or_404(User, pk=pk)
+    return render(request, "learner_detail.html", {"learner": learner})
+
+
+# ------------------- Dashboards -------------------
+
+
+def home(request):
+    return render(request, 'home.html')
+
+
+
+
+def mentor_dashboard(request):
     try:
-        model = joblib.load(model_path)
-    except FileNotFoundError:
-        return render(request, 'alerts.html', {'error': 'ML model not found. Re-run train_ml_model.py.'})
+        risk_calculator = RiskCalculator()
+        risk_data = risk_calculator.calculate_all_risks()
 
-    # Get all students and predict, creating alerts if at-risk
-    students = Student.objects.all()
-    for student in students:
-        features = np.array([[student.attendance_percentage, student.average_score]])
-        if model.predict(features)[0] == 1 and not Alert.objects.filter(title=f"At-Risk Alert for {student.name}").exists():
-            Alert.objects.create(
-                title=f"At-Risk Alert for {student.name}",
-                description=f"Low performance indicators detected (Attendance: {student.attendance_percentage}%, Score: {student.average_score}%).",
-                type='danger',
-                icon='warning'
-            )
+        # Add hyphenated risk_level to risk_data
+        risk_data_dict = risk_data.to_dict('records')
+        for student in risk_data_dict:
+            student['risk_level_hyphenated'] = student['risk_level'].lower().replace(' ', '-')
 
-    # Fetch all unread alerts from DB
-    alerts_list = Alert.objects.filter(is_read=False).order_by('-timestamp')
+        ai_insights = AIInsightsGenerator()  # Adjusted per latest ai_insights.py
+        insights = ai_insights.generate_insights()
 
-    if not alerts_list.exists():
-        # Sample alerts fallback
-        alerts_list = [
-            {"title": "Fee Pending Reminder", "description": "Student Raj has pending fees of ₹5000. Due date: 20-Sep-2025.", "type": "warning", "icon": "warning", "timestamp": "Just now"},
-            {"title": "New Attendance Alert", "description": "Attendance for class 10-B is below 75%.", "type": "info", "icon": "info", "timestamp": "Just now"},
-            {"title": "Overdue Fee Alert", "description": "Student Priya's fee is overdue by 15 days.", "type": "danger", "icon": "error", "timestamp": "Just now"},
-            {"title": "Event Notification", "description": "Science fair scheduled on 25-Sep-2025.", "type": "info", "icon": "notifications", "timestamp": "Just now"},
+        # Example data; replace with real queries
+        attendance_labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+        attendance_data = [95, 92, 90, 88]
+        performance_subjects = ['Math', 'Science', 'English']
+        performance_data = [85, 78, 82]
+        alerts = [
+            {'student': 'John Doe', 'issue': 'Low attendance (<70%)'},
+            {'student': 'Jane Smith', 'issue': 'GPA dropped below 2.0'}
         ]
 
+        context = {
+            'risk_data': risk_data_dict,
+            'insights': insights,
+            'attendance_labels': json.dumps(attendance_labels),
+            'attendance_data': json.dumps(attendance_data),
+            'performance_subjects': json.dumps(performance_subjects),
+            'performance_data': json.dumps(performance_data),
+            'total_students': len(risk_data),
+            'at_risk': sum(1 for row in risk_data_dict if row['risk_level'] in ['Very High', 'High']),
+            'alerts_sent': len(alerts),
+            'alerts': alerts
+        }
+        return render(request, 'mentor_dashboard.html', context)
+    except Exception as e:
+        print(f"Error in mentor_dashboard: {e}")
+        return render(request, 'mentor_dashboard.html', {})
+# ------------------- Attendance -------------------
+
+@login_required
+def attendance_view(request):
+    students = Student.objects.all()
+    total_students = students.count()
+    avg_attendance = Attendance.objects.aggregate(avg=Avg('percentage'))['avg'] or 0
+    at_risk_students = Student.objects.filter(is_at_risk=True).count()
+
+    student_attendance = []
+    class_attendance = {}
+    for student in students:
+        latest_att = Attendance.objects.filter(student=student).order_by('-date').first()
+        attendance_percent = latest_att.percentage if latest_att else student.attendance_percentage
+        student_attendance.append({
+            'name': student.user.username if student.user else student.name,  # Fallback to student.name
+            'class_name': f"Class {student.id % 4 + 1}",
+            'attendance': attendance_percent,
+            'status': 'At Risk' if attendance_percent < 70 else 'Average' if attendance_percent < 80 else 'Good'
+        })
+        class_name = f"Class {student.id % 4 + 1}"
+        class_attendance[class_name] = class_attendance.get(class_name, []) + [attendance_percent]
+
+    chart_labels = [f"Class {i}" for i in range(1, 5)]
+    chart_data = [sum(class_attendance.get(f"Class {i}", [0])) / len(class_attendance.get(f"Class {i}", [1])) for i in range(1, 5)]
+
+    context = {
+        'total_students': total_students,
+        'avg_attendance': round(avg_attendance, 2),
+        'at_risk_students': at_risk_students,
+        'student_attendance': student_attendance,
+        'chart_labels': json.dumps(chart_labels),
+        'chart_data': json.dumps(chart_data),
+    }
+    return render(request, 'attendance.html', context)
+# ------------------- Performance -------------------
+
+@login_required
+def performance_view(request):
+    students = Student.objects.all()
+    avg_score = Performance.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    top_student = Student.objects.order_by('-average_score').first()
+    top_student_name = top_student.user.username if top_student else 'N/A'
+    needs_improvement = Student.objects.filter(average_score__lt=70).count()
+
+    highest_score = Performance.objects.aggregate(max_score=Max('score'))['max_score'] or 0
+    lowest_score = Performance.objects.aggregate(min_score=Min('score'))['min_score'] or 0
+
+    class_performance = {}
+    for student in students:
+        class_name = f"Class {student.id % 4 + 1}"
+        class_performance[class_name] = class_performance.get(class_name, []) + [student.average_score]
+
+    chart_labels = [f"Class {i}" for i in range(1, 5)]
+    chart_data = [sum(class_performance.get(f"Class {i}", [0])) / len(class_performance.get(f"Class {i}", [1])) for i in range(1, 5)]
+
+    good_count = Student.objects.filter(average_score__gte=80).count()
+    average_count = Student.objects.filter(average_score__gte=70, average_score__lt=80).count()
+    needs_improvement_count = Student.objects.filter(average_score__lt=70).count()
+
+    context = {
+        'avg_score': round(avg_score, 2),
+        'top_student': top_student_name,
+        'needs_improvement': needs_improvement,
+        'highest_score': highest_score,
+        'lowest_score': lowest_score,
+        'chart_labels': json.dumps(chart_labels),
+        'chart_data': json.dumps(chart_data),
+        'pie_data': json.dumps([good_count, average_count, needs_improvement_count]),
+    }
+    return render(request, 'performance.html', context)
+
+
+# ------------------- Alerts -------------------
+
+@login_required
+def alerts_view(request):
+    students = Student.objects.all()
+    model_path = 'ml_models/at_risk_model.pkl'
+    try:
+        data = joblib.load(model_path)
+        if isinstance(data, dict):
+            model = data.get("model")
+            scaler = data.get("scaler")
+        else:
+            model, scaler = data, None
+        if not model:
+            raise ValueError("Model missing inside saved file.")
+    except Exception as e:
+        return render(request, 'alerts.html', {'error': f'ML model error: {e}'})
+
+    for student in students:
+        features = np.array([[student.attendance_percentage, student.average_score]])
+        if scaler:
+            try:
+                features = scaler.transform(features)
+            except Exception:
+                pass
+
+        try:
+            if model.predict(features)[0] == 1:
+                Alert.objects.get_or_create(
+                    title=f"At-Risk Alert for {student.user.username}",
+                    defaults={
+                        'description': f"Low performance indicators detected "
+                                       f"(Attendance: {student.attendance_percentage}%, "
+                                       f"Score: {student.average_score}%).",
+                        'type': 'danger',
+                        'icon': 'warning'
+                    }
+                )
+        except Exception:
+            continue  # skip prediction errors safely
+
+    alerts_list = Alert.objects.filter(is_read=False).order_by('-timestamp')
     context = {"alerts": alerts_list}
     return render(request, "alerts.html", context)
 
-# Mark alert as read (AJAX)
+
+
 @csrf_exempt
 def mark_alert_read(request):
     if request.method == "POST":
@@ -264,55 +273,59 @@ def mark_alert_read(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
-# Student Dashboard
+
+# ------------------- Student Dashboard -------------------
+
 @login_required
 def student(request):
-    user = get_user_model().objects.get(id=request.user.id)
-
+    user = request.user
     attendance_weeks = ["Week 1", "Week 2", "Week 3", "Week 4"]
-    attendance_values = [a.percentage for a in Attendance.objects.filter(student__user=user).order_by('week')] if user.is_student else [0, 0, 0, 0]
+    attendance_values = [a.percentage for a in Attendance.objects.filter(student__user=user).order_by('week')] if user.is_student else [0,0,0,0]
     latest_attendance = attendance_values[-1] if attendance_values else 0
 
-    score_tests = ["Test 1", "Test 2", "Test 3"]
     performance_data = Performance.objects.filter(student__user=user).order_by('test_date')
-    score_values = [p.score for p in performance_data] if performance_data.exists() else [0, 0, 0]
-    while len(score_values) < 3:
-        score_values.append(0)
-    avg_score = sum(score_values) / len(score_values) if score_values else 0
-
+    score_values = [p.score for p in performance_data] if performance_data.exists() else [0,0,0]
+    while len(score_values) < 3: score_values.append(0)
+    avg_score = sum(score_values)/len(score_values) if score_values else 0
     is_at_risk = latest_attendance < 75 or avg_score < 70
+
+    messages = []
+    if latest_attendance < 80: messages.append(f"⚠️ Your attendance dropped below {latest_attendance}%.")
+    if score_values[-1] > 70: messages.append("✅ Good improvement in recent test!")
 
     context = {
         "student_name": user.get_full_name() or user.username,
         "attendance": latest_attendance,
-        "avg_score": round(avg_score, 2),
-        "fee_status": "Partial",
+        "avg_score": round(avg_score,2),
         "dropout_risk": "High" if is_at_risk else "Low",
         "role": user.role,
         "attendance_weeks": json.dumps(attendance_weeks),
         "attendance_values": json.dumps(attendance_values[:4]),
-        "score_tests": json.dumps(score_tests),
+        "score_tests": json.dumps(["Test 1","Test 2","Test 3"]),
         "score_values": json.dumps(score_values[:3]),
-        "messages": [
-            f"⚠️ Your attendance dropped below {latest_attendance}%. Please contact your mentor." if latest_attendance < 80 and user.is_student else "",
-            "✅ Good improvement in Science this week!" if score_values[-1] > 70 and user.is_student else ""
-        ]
+        "messages": messages
     }
-    context["messages"] = [msg for msg in context["messages"] if msg]
-
     return render(request, "student.html", context)
 
-# Progress Page
+
+# ------------------- Other Pages -------------------
+
 @login_required
 def progress(request):
     return render(request, "progress.html")
 
-# Counselling Page
 @login_required
 def counselling(request):
     return render(request, "counselling.html")
 
-# Resources Page
 @login_required
 def resources(request):
     return render(request, "resources.html")
+
+# TrinityEd_app/views.py
+from django.shortcuts import render
+from .models import Student
+
+def student_list(request):   # ❌ 'studnet_list' se ❌
+    students = Student.objects.all()
+    return render(request, 'student_list.html', {'students': students})

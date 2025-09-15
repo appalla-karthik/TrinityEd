@@ -90,7 +90,7 @@
       <li class="app"><a href="{% url 'performance' %}"><img src="{% static 'img/performance.png' %}"/><span class="tooltip">Performance</span></a><div class="indicator"></div></li>
       <li class="app"><a href="{% url 'fee_status' %}"><img src="{% static 'img/fees.png' %}"/><span class="tooltip">Fee Status</span></a><div class="indicator"></div></li>
       <li class="app"><a href="{% url 'alerts' %}"><img src="{% static 'img/alerts.png' %}"/><span class="tooltip">Alerts</span></a><div class="indicator"></div></li>
-      <li class="app"><a href="{% url 'logout' %}" onclick="alert('Logged Out')"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
+      <li class="app"><a href="{% url 'logout' %}"><img src="{% static 'img/logout.png' %}"/><span class="tooltip">Logout</span></a><div class="indicator"></div></li>
     {% elif user.is_authenticated and user.role == "admin" %}
       <!-- 🔹 Admin Dock (Add admin-specific links as needed) -->
       <li class="app"><a href="{% url 'admin_dashboard' %}"><img src="{% static 'img/admin.png' %}"/><span class="tooltip">Admin Dashboard</span></a><div class="indicator"></div></li>

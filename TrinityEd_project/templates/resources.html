@@ -31,12 +31,13 @@
       width: 90%;
       margin: 2rem auto;
       height: 90vh;
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 14px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
       transition: all 0.3s ease;
     }
     .mac-header {
@@ -185,17 +186,24 @@
       macWindow.style.display = "none";
     });
 
-    btnMinimize.addEventListener("click", () => {
-      if (!isMinimized && !isMaximized) {
-        macContent.style.display = "none";
-        macWindow.style.height = "auto";
-      } else if (isMinimized) {
-        macContent.style.display = "block";
-        macWindow.style.height = "90vh";
-      }
-      isMinimized = !isMinimized;
-    });
-
+    btnMinimize.addEventListener("click",()=>{
+    if(!isMinimized && !isMaximized){
+      macContent.style.display="none";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="auto";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    } else if(isMinimized){
+      macContent.style.display="block";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="90vh";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    }
+    isMinimized=!isMinimized;
+  });
     btnMaximize.addEventListener("click", () => {
       if (!isMaximized) {
         macWindow.style.position = "fixed";

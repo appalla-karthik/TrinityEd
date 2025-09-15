@@ -1,33 +1,64 @@
 import os
-import sys
-import django
+import pandas as pd
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-import joblib
+from trinity_app.models import Student, Attendance, Performance
+from trinity_app.utils.ml_models import MLPredictor
+import logging
 
-# Set up Django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "TrinityEd_project.settings")  # Replace with your project name
-django.setup()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Dummy training data (replace with real data from Student model later)
-X = np.array([[90, 85], [80, 75], [70, 65], [60, 55], [95, 90], [50, 45], [85, 80], [65, 60], [75, 70], [55, 50]])
-y = np.array([0, 0, 1, 1, 0, 1, 0, 1, 0, 1])  # 1 = at-risk, 0 = not at-risk
+project_root = os.path.dirname(os.path.abspath(__file__))
+os.chdir(project_root)
+logger.info(f"Changed working directory to: {project_root}")
 
-# Split data for training/testing
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+try:
+    # Fetch student data from Django models
+    students = Student.objects.select_related('user').all()
+    students_data = []
+    for student in students:
+        latest_attendance = Attendance.objects.filter(student=student).order_by('-recorded_date').first()
+        avg_score = Performance.objects.filter(student=student).aggregate(Avg('score'))['score__avg'] or 0
+        students_data.append({
+            'student_id': student.enrollment_no,
+            'attendance_rate': latest_attendance.percentage if latest_attendance else student.attendance_percentage,
+            'current_gpa': student.average_score / 25,  # Convert to GPA scale
+            'behavioral_incidents': 0,  # Add logic if incidents are tracked
+            'risk_level': 'High' if student.is_at_risk else 'Low'
+        })
+    students_data = pd.DataFrame(students_data)
+    
+    if students_data.empty:
+        raise ValueError("No student data available for training.")
+    logger.info("Student data loaded successfully.")
 
-# Train the model
-model = LogisticRegression()
-model.fit(X_train, y_train)
+    # Initialize MLPredictor
+    ml_predictor = MLPredictor()
+    logger.info("MLPredictor initialized.")
 
-# Evaluate (optional)
-y_pred = model.predict(X_test)
-print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
+    # Prepare features and labels
+    features = ml_predictor.prepare_features(students_data)
+    labels = ml_predictor.create_risk_labels(students_data)
+    if features.size == 0 or labels.size == 0:
+        raise ValueError("Feature or label preparation failed.")
+    logger.info("Features and labels prepared successfully.")
+    logger.info(f"Labels unique counts: {np.unique(labels, return_counts=True)}")
 
-# Save the model (ensure ml_models/ directory exists or create it)
-if not os.path.exists('ml_models'):
-    os.makedirs('ml_models')
-joblib.dump(model, 'ml_models/at_risk_model.pkl')
-print("Model saved!")
+    # Train and save models
+    models = ['Random Forest', 'Logistic Regression']
+    save_path = os.path.join(project_root, 'ml_models/at_risk_model.pkl')
+    for model_name in models:
+        logger.info(f"Training {model_name} model...")
+        success = ml_predictor.train_model(model_name, features, labels)
+        if success:
+            logger.info(f"{model_name} model trained successfully.")
+        else:
+            logger.warning(f"{model_name} model training failed.")
+        ml_predictor.save_model(model_name, save_path)
+        logger.info(f"{model_name} model saved to {save_path}.")
+
+except Exception as e:
+    logger.error(f"Error during training: {str(e)}")
+    raise
+
+logger.info("Training process completed.")

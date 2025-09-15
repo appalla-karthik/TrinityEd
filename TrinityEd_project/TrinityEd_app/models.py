@@ -1,64 +1,92 @@
 from django.db import models
-from accounts.models import User  # For linking to Django's User model
+from django.conf import settings  # For custom User model
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+# ----------------- Student -----------------
 class Student(models.Model):
     """
-    Model to store student information and at-risk status predicted by ML.
+    Stores student info linked to User for dashboard, attendance, and performance.
+    Automatically created when a User with role='student' is added.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)  # Link to Django User
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,  # ✅ Use custom User model
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     name = models.CharField(max_length=100)
-    attendance_percentage = models.FloatField(default=0.0)  # e.g., 85.5
-    average_score = models.FloatField(default=0.0)  # e.g., 75.0
-    is_at_risk = models.BooleanField(default=False)  # Updated via ML prediction
-    enrollment_date = models.DateField(auto_now_add=True)  # When the student enrolled
+    enrollment_no = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    course = models.CharField(max_length=50, blank=True, null=True)
+    year = models.IntegerField(blank=True, null=True)
+    attendance_percentage = models.FloatField(default=0.0)
+    average_score = models.FloatField(default=0.0)
+    is_at_risk = models.BooleanField(default=False)
+    enrollment_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return self.name or "Unnamed Student"
 
+# Automatically create Student when a User with role='student' is created
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_student_for_user(sender, instance, created, **kwargs):
+    if created and getattr(instance, 'role', None) == 'student':
+        Student.objects.create(
+            user=instance,
+            name=getattr(instance, 'get_full_name', lambda: instance.username)(),
+            enrollment_no=f"ENR{instance.id}",  # Auto-generate enrollment number
+            course="Default Course",
+            year=1,
+        )
+
+# ----------------- Attendance -----------------
 class Attendance(models.Model):
-    """
-    Model to store attendance records for students.
-    """
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    week = models.CharField(max_length=10, choices=[(f"Week {i}", f"Week {i}") for i in range(1, 5)])  # e.g., Week 1, Week 2
-    percentage = models.FloatField(default=0.0)  # Attendance percentage for the week
-    recorded_date = models.DateField(auto_now_add=True)
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    date = models.DateField()
+    status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")])
+    percentage = models.FloatField(default=0.0)  # Pre-calculated DB field
 
     def __str__(self):
-        return f"{self.student.name} - {self.week} ({self.percentage}%)"
+        return f"{self.student.name if self.student else 'Unknown'} - {self.date} ({self.status})"
 
+    @property
+    def week_number(self):
+        """Week number for reporting (property, not DB field)."""
+        return self.date.isocalendar()[1] if self.date else None
+
+    @property
+    def recorded_date(self):
+        return self.date
+
+# ----------------- Performance -----------------
 class Performance(models.Model):
-    """
-    Model to store performance records (test scores) for students.
-    """
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    test_name = models.CharField(max_length=50)  # e.g., Test 1, Test 2
-    score = models.FloatField(default=0.0)  # Test score
+    test_name = models.CharField(max_length=50)
+    score = models.FloatField(default=0.0)
     test_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.student.name} - {self.test_name} ({self.score})"
 
+# ----------------- Fee -----------------
 class Fee(models.Model):
-    """
-    Model to store fee details for students.
-    """
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    total_fee = models.DecimalField(max_digits=10, decimal_places=2)  # Total fee amount
-    paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Amount paid
-    pending = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Amount pending
-    due_date = models.DateField(null=True, blank=True)  # Fee due date
-    is_overdue = models.BooleanField(default=False)  # Flag for overdue status
+    total_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    pending = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    due_date = models.DateField(null=True, blank=True)
+    is_overdue = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.student.name} - Pending: {self.pending}"
+        return f"{self.student.name if self.student else 'Unknown'} - Pending: {self.pending}"
 
-
-
+# ----------------- Alert -----------------
 class Alert(models.Model):
-    """
-    Model to store alert notifications for students or system events.
-    """
     TYPE_CHOICES = [
         ('info', 'Info'),
         ('warning', 'Warning'),
@@ -73,17 +101,4 @@ class Alert(models.Model):
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.title
-    
-# student btton
-class Learner(models.Model):
-    name = models.CharField(max_length=150)
-    email = models.EmailField(unique=True)
-    enrollment_no = models.CharField(max_length=50, unique=True)
-    course = models.CharField(max_length=100)
-    year = models.IntegerField()
-    attendance_percentage = models.FloatField(default=0.0)
-    performance_score = models.FloatField(default=0.0)
-
-    def __str__(self):
-        return f"{self.name} ({self.enrollment_no})"
+        return self.title or "Alert"

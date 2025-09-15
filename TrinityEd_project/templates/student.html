@@ -21,15 +21,16 @@
 
     .mac-window {
       width: 90%;
-      height: 90vh;
       margin: 2rem auto;
-      background: rgba(255,255,255,0.9);
+      height: 90vh;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 14px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
       display: flex;
       flex-direction: column;
-      backdrop-filter: blur(18px);
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
     }
     .mac-header {
       display: flex;
@@ -57,8 +58,17 @@
     .notification-item { padding: 12px 16px; font-size: 14px; color: #333; border-bottom: 1px solid #eee; }
     .notification-item:last-child { border-bottom: none; }
 
-    .stat-card { background: rgba(255,255,255,0.9); backdrop-filter: blur(14px); border-radius: 20px; padding: 20px;
-      border: 1px solid rgba(37,99,235,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .stat-card { 
+      background: rgba(255,255,255,0.9); 
+      backdrop-filter: blur(14px); 
+      border-radius: 20px; 
+      padding: 20px;
+      border: 1px solid rgba(37,99,235,0.1); 
+      display: flex; 
+      align-items: center; 
+      gap: 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    }
     .stat-card:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(37,99,235,0.25); }
 
     .chart-box { border-radius: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(16px);
@@ -68,6 +78,23 @@
     .low-text { color: green; }
     .medium-text { color: orange; }
     .high-text { color: red; }
+
+    /* Progress Ring */
+    .progress-ring__circle {
+      stroke-dasharray: 339.292;
+      stroke-dashoffset: 339.292;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 3px currentColor);
+      transition: stroke-dashoffset 1.5s ease, stroke 0.5s ease;
+    }
+
+    /* Custom Gradients for Student Stats */
+    .gradient-gpa { stroke: url(#gradientBlue); }      
+    .gradient-attendance { stroke: url(#gradientGreen); } 
+    .gradient-credits { stroke: url(#gradientOrange); }   
+    .gradient-incidents { stroke: url(#gradientRed); }    
   </style>
 {% endblock %}
 
@@ -96,10 +123,10 @@
   </div>
 
   <main id="macContent" class="flex-1 p-8 overflow-y-auto">
-    <!-- Student Profile and Risk Level -->
+    <!-- Student Profile -->
     <div class="flex items-start justify-between mb-10">
       <div class="flex items-center gap-6">
-        <img src="{% static 'images/profile.png' %}" alt="Profile"
+        <img src="{% static 'img/StudentDashboard.png' %}" alt="Profile"
              class="w-28 h-28 rounded-full object-cover shadow-md border">
         <div>
           <h1 class="text-3xl font-bold text-gray-800">{{ student_name }}</h1>
@@ -115,34 +142,86 @@
       </div>
     </div>
 
-    <!-- Stats Row -->
+    <!-- Stats Row with Progress Rings -->
+    <svg width="0" height="0">
+      <defs>
+        <linearGradient id="gradientBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2563eb"/>
+          <stop offset="100%" stop-color="#60a5fa"/>
+        </linearGradient>
+        <linearGradient id="gradientGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#16a34a"/>
+          <stop offset="100%" stop-color="#4ade80"/>
+        </linearGradient>
+        <linearGradient id="gradientOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#d97706"/>
+          <stop offset="100%" stop-color="#fbbf24"/>
+        </linearGradient>
+        <linearGradient id="gradientRed" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#dc2626"/>
+          <stop offset="100%" stop-color="#f87171"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="stat-card flex items-center gap-4">
-        <span class="material-icons text-4xl text-indigo-600">school</span>
+      <!-- GPA -->
+      <div class="stat-card">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
+            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            <circle class="progress-ring__circle gradient-gpa" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="2.6" data-max="4"/>
+          </svg>
+          <span class="material-icons text-blue-600 text-3xl">school</span>
+        </div>
         <div>
           <p class="text-sm text-gray-500">Current GPA</p>
           <p class="text-2xl font-bold">2.60</p>
           <p class="text-xs text-red-600">-0.42 from last term</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-4">
-        <span class="material-icons text-4xl text-blue-600">event_available</span>
+
+      <!-- Attendance -->
+      <div class="stat-card">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
+            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            <circle class="progress-ring__circle gradient-attendance" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="74.1" data-max="100"/>
+          </svg>
+          <span class="material-icons text-green-600 text-3xl">event_available</span>
+        </div>
         <div>
           <p class="text-sm text-gray-500">Attendance Rate</p>
           <p class="text-2xl font-bold">74.1%</p>
           <p class="text-xs text-red-600">-4.5% from last month</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-4">
-        <span class="material-icons text-4xl text-green-600">check_circle</span>
+
+      <!-- Credits -->
+      <div class="stat-card">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
+            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            <circle class="progress-ring__circle gradient-credits" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="18" data-max="24"/>
+          </svg>
+          <span class="material-icons text-yellow-600 text-3xl">workspace_premium</span>
+        </div>
         <div>
           <p class="text-sm text-gray-500">Credits Earned</p>
           <p class="text-2xl font-bold">18/24</p>
           <p class="text-xs text-green-600">+12 this term</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-4">
-        <span class="material-icons text-4xl text-red-500">report_problem</span>
+
+      <!-- Incidents -->
+      <div class="stat-card">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
+            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            <circle class="progress-ring__circle gradient-incidents" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="3" data-max="10"/>
+          </svg>
+          <span class="material-icons text-red-600 text-3xl">report_problem</span>
+        </div>
         <div>
           <p class="text-sm text-gray-500">Behavioral Incidents</p>
           <p class="text-2xl font-bold">3</p>
@@ -182,24 +261,24 @@
   let isMaximized = false, isMinimized = false;
 
   btnClose.onclick = () => macWindow.style.display = "none";
-  btnMinimize.addEventListener("click", () => {
-      if (!isMinimized && !isMaximized) {
-        macContent.style.display = "none";
-        macWindow.style.position = "static";
-        macWindow.style.width = "90%";
-        macWindow.style.height = "auto";
-        macWindow.style.margin = "2rem auto";
-        macWindow.style.borderRadius = "14px";
-      } else if (isMinimized) {
-        macContent.style.display = "block";
-        macWindow.style.position = "static";
-        macWindow.style.width = "90%";
-        macWindow.style.height = "auto";
-        macWindow.style.margin = "2rem auto";
-        macWindow.style.borderRadius = "14px";
-      }
-      isMinimized = !isMinimized;
-    });
+  btnMinimize.addEventListener("click",()=>{
+    if(!isMinimized && !isMaximized){
+      macContent.style.display="none";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="auto";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    } else if(isMinimized){
+      macContent.style.display="block";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="90vh";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    }
+    isMinimized=!isMinimized;
+  });
   btnMaximize.onclick = () => {
     if (!isMaximized) { macWindow.style.position="fixed"; macWindow.style.top="0"; macWindow.style.left="0";
       macWindow.style.width="100%"; macWindow.style.height="100vh"; macWindow.style.margin="0"; macWindow.style.borderRadius="0"; }
@@ -212,6 +291,21 @@
   const notifDropdown = document.getElementById("notifDropdown");
   notifBtn.addEventListener("click", () => notifDropdown.classList.toggle("active"));
   window.addEventListener("click", (e) => { if (!notifBtn.contains(e.target)) notifDropdown.classList.remove("active"); });
+
+  // Progress Ring Animation
+  document.querySelectorAll(".progress-ring__circle").forEach(circle => {
+    const radius = circle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+    const value = parseFloat(circle.dataset.value);
+    const max = parseFloat(circle.dataset.max);
+    const percent = value / max;
+    const offset = circumference - percent * circumference;
+    setTimeout(() => {
+      circle.style.strokeDashoffset = offset;
+    }, 300);
+  });
 
   // Attendance Chart
   new Chart(document.getElementById('attendanceChart'), {

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+  {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Mentor Dashboard | TrinityEd{% endblock %}
@@ -168,8 +168,8 @@
       font-weight: 600;
     }
 
-    /* Charts */
-    .chart-box {
+    /* Charts and Tables */
+    .chart-box, .table-box {
       animation: fadeUp 1s ease forwards;
       opacity: 0;
       transform-origin: bottom;
@@ -181,13 +181,13 @@
       backdrop-filter: blur(16px);
       border: 1px solid rgba(37,99,235,0.15);
     }
-    .chart-box:hover { 
+    .chart-box:hover, .table-box:hover { 
       transform: scale(1.05); 
       box-shadow: 0 14px 32px rgba(37,99,235,0.28);
     }
 
     /* ✨ Shimmer Effect */
-    .chart-box::before {
+    .chart-box::before, .table-box::before {
       content: "";
       position: absolute;
       top: -50%; left: -50%;
@@ -202,30 +202,76 @@
       100% { transform: translateX(50%) rotate(25deg); }
     }
 
-    
-    /* FadeUp */
+    /* Table Styling */
+    .risk-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .risk-table th, .risk-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(37,99,235,0.1);
+    }
+    .risk-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #2563eb;
+    }
+    .risk-table tr:hover {
+      background: rgba(37,99,235,0.05);
+    }
+    .risk-level-very-high { color: #dc2626; }
+    .risk-level-high { color: #ef4444; }
+    .risk-level-medium { color: #f59e0b; }
+    .risk-level-low { color: #10b981; }
+    .risk-level-very-low { color: #22c55e; }
+
+    /* FadeUp and FadeIn */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(25px) scale(0.96); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
-
-    /* FadeIn Animation */
     @keyframes fadeIn {
       0% { opacity: 0; transform: translateY(25px) scale(0.95); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-
     .animate-fadeIn {
       animation: fadeIn 0.8s forwards;
     }
-
     .delay-100 { animation-delay: 0.1s; }
     .delay-200 { animation-delay: 0.2s; }
     .delay-300 { animation-delay: 0.3s; }
+
+    /* SVG Gradients for Progress Rings */
+    svg defs linearGradient#gradientBlue stop:nth-child(1) { stop-color: #2563eb; }
+    svg defs linearGradient#gradientBlue stop:nth-child(2) { stop-color: #3b82f6; }
+    svg defs linearGradient#gradientRed stop:nth-child(1) { stop-color: #ef4444; }
+    svg defs linearGradient#gradientRed stop:nth-child(2) { stop-color: #f87171; }
+    svg defs linearGradient#gradientGreen stop:nth-child(1) { stop-color: #10b981; }
+    svg defs linearGradient#gradientGreen stop:nth-child(2) { stop-color: #34d399; }
   </style>
 </head> 
 
 <body class="flex flex-col min-h-screen">
+  <!-- SVG Definitions for Gradients -->
+  <svg style="position: absolute; width: 0; height: 0;">
+    <defs>
+      <linearGradient id="gradientBlue">
+        <stop offset="0%" stop-color="#2563eb"/>
+        <stop offset="100%" stop-color="#3b82f6"/>
+      </linearGradient>
+      <linearGradient id="gradientRed">
+        <stop offset="0%" stop-color="#ef4444"/>
+        <stop offset="100%" stop-color="#f87171"/>
+      </linearGradient>
+      <linearGradient id="gradientGreen">
+        <stop offset="0%" stop-color="#10b981"/>
+        <stop offset="100%" stop-color="#34d399"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
   <!-- macOS Window Wrapper -->
   <div id="macWindow" class="mac-window flex flex-col h-[90vh]">
     <div class="mac-header">
@@ -237,14 +283,14 @@
 
     <!-- Main Content -->
     <main id="macContent" class="flex-1 p-8 overflow-y-auto animate-fadeIn">
-      <div class="flex justify-end mb-4 m">
-            <a href="{% url 'learner_list' %}" 
-   class="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 text-white font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-300">
-    <span class="material-icons text-sm">person_add</span>
-    Add Student
-</a>
+      <div class="flex justify-end mb-4">
+        <a href="{% url 'student_list' %}" 
+           class="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 text-white font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-300">
+          <span class="material-icons text-sm">person_add</span>
+          Add Student
+        </a>
+      </div>
 
-          </div>
       <!-- Stats Cards Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <!-- Total Students Card -->
@@ -277,39 +323,93 @@
           </div>
         </div>
 
-        <!-- Alerts Sent Card + Add Student Button -->
-      
-          
-          <!-- Alerts Sent Card -->
-          <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
-            <div class="icon-box relative w-20 h-20 flex items-center justify-center">
-              <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
-                <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-                <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-              </svg>
-              <span class="material-icons text-3xl text-green-600">notifications_active</span>
-            </div>
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Alerts Sent</h3>
-              <p class="text-3xl font-extrabold text-green-600 count-up" data-target="{{ alerts_sent }}">{{ alerts_sent }}</p>
-            </div>
+        <!-- Alerts Sent Card -->
+        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+          <div class="icon-box relative w-20 h-20 flex items-center justify-center">
+            <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            </svg>
+            <span class="material-icons text-3xl text-green-600">notifications_active</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-gray-500">Alerts Sent</h3>
+            <p class="text-3xl font-extrabold text-green-600 count-up" data-target="{{ alerts_sent }}">{{ alerts_sent }}</p>
+          </div>
         </div>
       </div>
 
-      <!-- Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
+      <!-- Charts and Analytics -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Attendance Chart -->
+        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl delay-100">
           <h3 class="text-lg font-semibold mb-4 text-gray-700">Attendance Trends</h3>
-          <canvas id="attendanceChart"></canvas>
+          <canvas id="attendanceChart" role="img" aria-label="Line chart showing attendance trends over time"></canvas>
         </div>
-        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
+        <!-- Performance Chart -->
+        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl delay-200">
           <h3 class="text-lg font-semibold mb-4 text-gray-700">Performance Overview</h3>
-          <canvas id="performanceChart"></canvas>
+          <canvas id="performanceChart" role="img" aria-label="Bar chart showing average performance scores by subject"></canvas>
+        </div>
+        <!-- Risk Distribution Chart -->
+        <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl delay-300">
+          <h3 class="text-lg font-semibold mb-4 text-gray-700">Risk Distribution</h3>
+          <canvas id="riskDistributionChart" role="img" aria-label="Pie chart showing distribution of student dropout risk levels"></canvas>
+        </div>
+      </div>
+
+      <!-- Risk Assessments Table -->
+      <div class="table-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl mb-8">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">Risk Assessments</h3>
+        <table class="risk-table" role="grid" aria-label="Table of student risk assessments">
+          <thead>
+            <tr>
+              <th scope="col">Student</th>
+              <th scope="col">Grade</th>
+              <th scope="col">Risk Level</th>
+              <th scope="col">Risk Score</th>
+              <th scope="col">Primary Factors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in risk_data %}
+              <tr class="alert-item">
+                <td>{{ student.student_name }}</td>
+                <td>{{ student.grade_level }}</td>
+                <td class="risk-level-{{ student.risk_level_hyphenated }}">{{ student.risk_level }}</td>
+                <td>{{ student.risk_score|floatformat:1 }}</td>
+                <td>{{ student.primary_risk_factors }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-gray-500">No risk assessments available.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- AI Insights Section -->
+      <div class="table-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl mb-8">
+        <h3 class="text-lg font-semibold mb-4 text-gray-700">AI Insights</h3>
+        <div class="mb-4">
+          <h4 class="text-md font-medium text-gray-600">Executive Summary</h4>
+          <p class="text-gray-700">{{ insights.executive_summary|default:"No summary available." }}</p>
+        </div>
+        <div>
+          <h4 class="text-md font-medium text-gray-600">Key Findings</h4>
+          <ul class="list-disc pl-5 text-gray-700">
+            {% for finding in insights.key_findings %}
+              <li class="alert-item">{{ finding }}</li>
+            {% empty %}
+              <li class="text-gray-500">No key findings available.</li>
+            {% endfor %}
+          </ul>
         </div>
       </div>
 
       <!-- Alerts Section -->
-      <div class="mt-8 bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
+      <div class="table-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Recent Alerts</h3>
         <ul class="divide-y divide-gray-200">
           {% for alert in alerts %}
@@ -325,7 +425,7 @@
     </main>
   </div>
 
-  <!-- JavaScript functionality for window, charts, count-up, etc. -->
+  <!-- JavaScript functionality -->
   <script>
     // macOS Window Controls
     const macWindow = document.getElementById("macWindow");
@@ -337,31 +437,26 @@
     let isMaximized = false;
     let isMinimized = false;
 
-    // 🔴 Close → hide window
     btnClose.addEventListener("click", () => {
       macWindow.style.display = "none";
     });
 
-    // 🟡 Minimize → toggle content visibility based on state
     btnMinimize.addEventListener("click", () => {
       if (!isMinimized) {
-        // If maximized, restore to normal with content visible
         if (isMaximized) {
           macWindow.style.position = "static";
           macWindow.style.width = "90%";
-          macWindow.style.height = "90vh"; // Consistent height
+          macWindow.style.height = "90vh";
           macWindow.style.margin = "2rem auto";
           macWindow.style.borderRadius = "14px";
-          macContent.style.display = "block"; // Keep content visible
+          macContent.style.display = "block";
           isMaximized = false;
-          return; // Exit after restoring
+          return;
         }
-        // From normal state, hide content
         macContent.style.display = "none";
-        macWindow.style.height = "60px"; // Minimum height for header visibility
+        macWindow.style.height = "60px";
         macWindow.style.margin = "2rem auto";
       } else {
-        // Restore from minimized state
         macContent.style.display = "block";
         macWindow.style.height = "90vh";
         macWindow.style.margin = "2rem auto";
@@ -369,7 +464,6 @@
       isMinimized = !isMinimized;
     });
 
-    // 🟢 Maximize → toggle fullscreen
     btnMaximize.addEventListener("click", () => {
       if (!isMaximized) {
         macWindow.style.position = "fixed";
@@ -388,18 +482,7 @@
       }
       macContent.style.display = "block";
       isMaximized = !isMaximized;
-      if (isMaximized) isMinimized = false; // Reset minimized state
-    });
-
-    // Dock bounce
-    document.querySelectorAll(".app").forEach(app => {
-      app.addEventListener("click", () => {
-        document.querySelectorAll(".app").forEach(a => a.classList.remove("active"));
-        app.classList.add("active");
-        const img = app.querySelector("img");
-        img.classList.add("bounce");
-        img.addEventListener("animationend", () => img.classList.remove("bounce"), {once: true});
-      });
+      if (isMaximized) isMinimized = false;
     });
 
     // Count-up Animation
@@ -410,9 +493,9 @@
 
       const update = () => {
         count += step;
-        if(count > target) count = target;
+        if (count > target) count = target;
         el.textContent = count;
-        if(count < target) requestAnimationFrame(update);
+        if (count < target) requestAnimationFrame(update);
       };
       update();
     });
@@ -431,7 +514,7 @@
       }, 500);
     });
 
-    // ✅ Attendance Chart (Interactive Hover)
+    // Attendance Chart
     const ctx1 = document.getElementById('attendanceChart').getContext('2d');
     const gradientBlue = ctx1.createLinearGradient(0, 0, 0, 300);
     gradientBlue.addColorStop(0, 'rgba(37,99,235,0.35)');
@@ -463,10 +546,7 @@
             callbacks: {
               label: function(context) {
                 let val = context.raw;
-                if (val < 70) {
-                  return `⚠ Low Attendance: ${val}%`;
-                }
-                return `✅ Attendance: ${val}%`;
+                return val < 70 ? `⚠ Low Attendance: ${val}%` : `✅ Attendance: ${val}%`;
               }
             }
           }
@@ -481,7 +561,7 @@
       }
     });
 
-    // ✅ Performance Chart (Hover Details)
+    // Performance Chart
     const ctx2 = document.getElementById('performanceChart').getContext('2d');
     const gradients = [
       ['rgba(37,99,235,0.9)','rgba(37,99,235,0.6)'],
@@ -529,6 +609,48 @@
         scales: {
           y: { max: 100, beginAtZero: true }
         }
+      }
+    });
+
+    // Risk Distribution Chart
+    const ctx3 = document.getElementById('riskDistributionChart').getContext('2d');
+    const riskGradient = ctx3.createLinearGradient(0, 0, 0, 300);
+    riskGradient.addColorStop(0, 'rgba(239,68,68,0.9)');
+    riskGradient.addColorStop(1, 'rgba(239,68,68,0.3)');
+
+    new Chart(ctx3, {
+      type: 'pie',
+      data: {
+        labels: ['Very High', 'High', 'Medium', 'Low', 'Very Low'],
+        datasets: [{
+          data: [
+            {{ insights.risk_distribution.Very_High|default:0 }},
+            {{ insights.risk_distribution.High|default:0 }},
+            {{ insights.risk_distribution.Medium|default:0 }},
+            {{ insights.risk_distribution.Low|default:0 }},
+            {{ insights.risk_distribution.Very_Low|default:0 }}
+          ],
+          backgroundColor: ['#dc2626', '#ef4444', '#f59e0b', '#10b981', '#22c55e'],
+          hoverBackgroundColor: ['#b91c1c', '#dc2626', '#d97706', '#059669', '#16a34a'],
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        plugins: {
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                let label = context.label || '';
+                let value = context.raw || 0;
+                return `${label}: ${value} students`;
+              }
+            }
+          }
+        },
+        responsive: true,
+        maintainAspectRatio: false
       }
     });
   </script>

@@ -11,12 +11,15 @@
       background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff); 
       background-size: 300% 300%; 
       animation: gradientShift 12s ease infinite; 
+      font-family: 'Inter', system-ui, sans-serif;
     }
     @keyframes gradientShift { 
       0% {background-position:0% 50%} 
       50% {background-position:100% 50%} 
       100% {background-position:0% 50%} 
     }
+
+    /* Card styling */
     .card { 
       background: rgba(255,255,255,0.9); 
       border-radius: 18px; 
@@ -32,14 +35,17 @@
 
     /* macOS window styling */
     .mac-window {
-      width: 90%;
+       width: 90%;
       margin: 2rem auto;
-      border-radius: 14px;
-      overflow: hidden;
+      height: 90vh;
       background: rgba(255, 255, 255, 0.95);
+      border-radius: 14px;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      animation: fadeIn 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
     }
     .mac-header {
       display: flex;
@@ -49,15 +55,16 @@
       border-bottom: 1px solid #e5e7eb;
     }
     .mac-btn {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       display: inline-block;
-      margin-right: 6px;
+      margin-right: 8px;
+      cursor: pointer;
     }
-    .mac-btn.red { background: #ff5f57; }
-    .mac-btn.yellow { background: #ffbd2f; }
-    .mac-btn.green { background: #28c840; }
+    .red { background: #ff5f57; }
+    .yellow { background: #ffbd2f; }
+    .green { background: #28c840; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -66,7 +73,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="macWindow" class="mac-window flex flex-col h-[90vh]">
+<div id="macWindow" class="mac-window">
   <!-- macOS header -->
   <div class="mac-header">
     <span id="btnClose" class="mac-btn red"></span>
@@ -166,64 +173,69 @@
 
 {% block extra_js %}
 <script>
-  const macWindow = document.getElementById("macWindow");
-  const macContent = document.getElementById("macContent");
-  const btnClose = document.getElementById("btnClose");
-  const btnMinimize = document.getElementById("btnMinimize");
-  const btnMaximize = document.getElementById("btnMaximize");
+  const macWindow=document.getElementById("macWindow"),
+        macContent=document.getElementById("macContent"),
+        btnClose=document.getElementById("btnClose"),
+        btnMinimize=document.getElementById("btnMinimize"),
+        btnMaximize=document.getElementById("btnMaximize");
 
-  let isMaximized = false;
-  let isMinimized = false;
+  let isMaximized=false, isMinimized=false;
 
-  btnClose.addEventListener("click", () => {
-    macWindow.style.display = "none";
+  btnClose.addEventListener("click",()=>macWindow.style.display="none");
+
+  btnMinimize.addEventListener("click",()=>{
+    if(!isMinimized && !isMaximized){
+      macContent.style.display="none";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="auto";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    } else if(isMinimized){
+      macContent.style.display="block";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="90vh";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    }
+    isMinimized=!isMinimized;
   });
 
-  btnMinimize.addEventListener("click", () => {
-    if (!isMinimized) {
-      macContent.style.display = "none";
-      macWindow.style.height = "60px";
+  btnMaximize.addEventListener("click",()=>{
+    if(!isMaximized){
+      macWindow.style.position="fixed";
+      macWindow.style.top="0";
+      macWindow.style.left="0";
+      macWindow.style.width="100%";
+      macWindow.style.height="100vh";
+      macWindow.style.margin="0";
+      macWindow.style.borderRadius="0";
     } else {
-      macContent.style.display = "block";
-      macWindow.style.height = "90vh";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="90vh";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
     }
-    isMinimized = !isMinimized;
-  });
-
-  btnMaximize.addEventListener("click", () => {
-    if (!isMaximized) {
-      macWindow.style.position = "fixed";
-      macWindow.style.top = "0";
-      macWindow.style.left = "0";
-      macWindow.style.width = "100%";
-      macWindow.style.height = "100vh";
-      macWindow.style.margin = "0";
-      macWindow.style.borderRadius = "0";
-    } else {
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "90vh";
-      macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
-    }
-    macContent.style.display = "block";
-    isMaximized = !isMaximized;
-    if (isMaximized) isMinimized = false;
+    macContent.style.display="block";
+    isMaximized=!isMaximized;
+    if(isMaximized) isMinimized=false;
   });
 
   // Chart.js progress chart
-  const ctx = document.getElementById('progressChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ["Aug", "Sep", "Oct", "Nov"],
-      datasets: [
-        { label: "Attendance %", data: [85, 80, 78, 82], borderColor: "#3b82f6", fill: false },
-        { label: "Assignments %", data: [75, 72, 65, 70], borderColor: "#10b981", fill: false },
-        { label: "Stress Score", data: [50, 60, 70, 65], borderColor: "#f59e0b", fill: false }
+  const ctx=document.getElementById('progressChart').getContext('2d');
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:["Aug","Sep","Oct","Nov"],
+      datasets:[
+        { label:"Attendance %", data:[85,80,78,82], borderColor:"#3b82f6", fill:false, tension:0.4 },
+        { label:"Assignments %", data:[75,72,65,70], borderColor:"#10b981", fill:false, tension:0.4 },
+        { label:"Stress Score", data:[50,60,70,65], borderColor:"#f59e0b", fill:false, tension:0.4 }
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    options:{ responsive:true, plugins:{ legend:{ position:"bottom" } } }
   });
 </script>
 {% endblock %}

@@ -6,17 +6,54 @@
 {% block extra_head %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
   <style>
     body {
       background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff);
       background-size: 300% 300%;
       animation: gradientShift 12s ease infinite;
+      font-family: 'Inter', system-ui, sans-serif;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
+    /* Mac Window */
+    .mac-window {
+      width: 90%;
+      margin: 2rem auto;
+      height: 90vh;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    .mac-header {
+      display: flex; align-items: center;
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .mac-btn {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      margin-right: 8px;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .red { background:#ef4444; }
+    .yellow { background:#facc15; }
+    .green { background:#22c55e; }
+    .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
+
+    /* Card styling */
     .card {
       background: rgba(255,255,255,0.9);
       border-radius: 20px;
@@ -25,45 +62,21 @@
       padding: 20px;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    .card:hover { transform: scale(1.02); box-shadow: 0 12px 32px rgba(37,99,235,0.25); }
-
-    .mac-window {
-      width: 90%;
-      margin: 2rem auto;
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(0, 0, 0, 0.1);
+    .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 32px rgba(37,99,235,0.25);
     }
-    .mac-header {
-      display: flex;
-      align-items: center;
-      padding: 8px 14px;
-      background: #f9fafb;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .mac-btn {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
-    }
-    .mac-btn.red { background: #ff5f57; }
-    .mac-btn.yellow { background: #ffbd2f; }
-    .mac-btn.green { background: #28c840; }
   </style>
 {% endblock %}
 
 {% block content %}
-<div id="macWindow" class="mac-window flex flex-col h-[90vh]">
+<div id="macWindow" class="mac-window">
   <!-- macOS header -->
   <div class="mac-header">
     <span id="btnClose" class="mac-btn red"></span>
     <span id="btnMinimize" class="mac-btn yellow"></span>
     <span id="btnMaximize" class="mac-btn green"></span>
-    <span class="ml-4 font-medium text-gray-600">📊 Progress Overview</span>
+    <span class="mac-title">📊 Progress Overview</span>
   </div>
 
   <!-- Main content -->
@@ -85,7 +98,7 @@
         </div>
       </div>
 
-      <!-- 📚 Subject Performance + Summary -->
+      <!-- 📚 Subject Performance -->
       <div class="card lg:col-span-2">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">📚 Subject Performance</h3>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -184,8 +197,45 @@
   const macWindow=document.getElementById("macWindow"),macContent=document.getElementById("macContent");
   const btnClose=document.getElementById("btnClose"),btnMinimize=document.getElementById("btnMinimize"),btnMaximize=document.getElementById("btnMaximize");
   let isMaximized=false,isMinimized=false;
+  
   btnClose.addEventListener("click",()=>macWindow.style.display="none");
-  btnMinimize.addEventListener("click",()=>{if(!isMinimized){macContent.style.display="none";macWindow.style.height="60px";}else{macContent.style.display="block";macWindow.style.height="90vh";}isMinimized=!isMinimized;});
-  btnMaximize.addEventListener("click",()=>{if(!isMaximized){macWindow.style.position="fixed";macWindow.style.top="0";macWindow.style.left="0";macWindow.style.width="100%";macWindow.style.height="100vh";macWindow.style.margin="0";macWindow.style.borderRadius="0";}else{macWindow.style.position="static";macWindow.style.width="90%";macWindow.style.height="90vh";macWindow.style.margin="2rem auto";macWindow.style.borderRadius="14px";}macContent.style.display="block";isMaximized=!isMaximized;if(isMaximized)isMinimized=false;});
+  btnMinimize.addEventListener("click",()=>{
+    if(!isMinimized && !isMaximized){
+      macContent.style.display="none";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="auto";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    } else if(isMinimized){
+      macContent.style.display="block";
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="90vh";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    }
+    isMinimized=!isMinimized;
+  });
+  btnMaximize.addEventListener("click",()=>{
+    if(!isMaximized){
+      macWindow.style.position="fixed";
+      macWindow.style.top="0";
+      macWindow.style.left="0";
+      macWindow.style.width="100%";
+      macWindow.style.height="100vh";
+      macWindow.style.margin="0";
+      macWindow.style.borderRadius="0";
+    } else {
+      macWindow.style.position="static";
+      macWindow.style.width="90%";
+      macWindow.style.height="90vh";
+      macWindow.style.margin="2rem auto";
+      macWindow.style.borderRadius="14px";
+    }
+    macContent.style.display="block";
+    isMaximized=!isMaximized;
+    if(isMaximized)isMinimized=false;
+  });
 </script>
 {% endblock %}
