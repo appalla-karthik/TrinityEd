@@ -209,7 +209,9 @@
     </ul>
   </nav>
 
-  <script>
+ <script>
+  // DOM Content Loaded to ensure elements are available
+  document.addEventListener('DOMContentLoaded', function () {
     const macWindow = document.getElementById("macWindow");
     const macContent = document.getElementById("macContent");
     const btnClose = document.getElementById("btnClose");
@@ -337,14 +339,23 @@
       link.click();
     });
 
-    // Filter by class
-    document.getElementById('classFilter').addEventListener('change', function(){
-      const filter = this.value;
-      document.querySelectorAll('#attendanceTable tbody tr').forEach(row => {
-        const className = row.cells[2].innerText;
-        row.style.display = (filter === 'all' || filter === className) ? '' : 'none';
+    // Filter by class (Updated Logic)
+    const classFilter = document.getElementById('classFilter');
+    classFilter.addEventListener('change', function() {
+      const filter = this.value.toLowerCase().trim(); // Normalize filter value
+      const rows = document.querySelectorAll('#attendanceTable tbody tr');
+      
+      rows.forEach(row => {
+        const className = row.cells[2].innerText.toLowerCase().trim(); // Normalize class name
+        console.log(`Filter: ${filter}, Class: ${className}`); // Debug log
+        if (filter === 'all' || className === filter) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
       });
     });
-  </script>
+  });
+</script>
 </body>
 </html>

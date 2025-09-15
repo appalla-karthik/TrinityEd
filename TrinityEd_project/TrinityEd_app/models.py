@@ -67,6 +67,8 @@ class Attendance(models.Model):
 class Performance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     test_name = models.CharField(max_length=50)
+    subject = models.CharField(max_length=255, default="General")
+
     score = models.FloatField(default=0.0)
     test_date = models.DateField(auto_now_add=True)
 

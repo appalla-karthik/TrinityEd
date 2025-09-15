@@ -1,36 +1,99 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4">Students List</h1>
-    {% if students %}
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <thead class="bg-blue-600 text-white">
-                <tr>
-                    <th class="px-6 py-3 text-left">Name</th>
-                    <th class="px-6 py-3 text-left">Enrollment Number</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                {% for student in students %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 font-medium text-gray-900">{{ student.user.username }}</td>
-                    <td class="px-6 py-4">
-                        {% if student.user.enrollment_no %}
-                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">{{ student.user.enrollment_no }}</span>
-                        {% else %}
-                            <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">Not Enrolled</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="bg-cover bg-center bg-fixed py-12 px-6" 
+     style="background-image: url('{% static "images/bg.jpg" %}');">
+    <div class="max-w-6xl mx-auto">
+        <!-- Page Title -->
+        <h1 class="text-4xl font-extrabold mb-10 text-center drop-shadow-sm">
+            <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
+                         bg-clip-text text-transparent animate-gradient">
+                🎓 Students Directory
+            </span>
+        </h1>
+
+        {% if students %}
+        <!-- Table Card -->
+        <div class="overflow-x-auto rounded-2xl shadow-2xl border border-gray-200 
+                    bg-white/70 backdrop-blur-2xl transition duration-500 
+                    hover:shadow-purple-300">
+            <table class="min-w-full text-sm text-left">
+                <!-- Table Head -->
+                <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-lg font-semibold tracking-wide">👤 Name</th>
+                        <th class="px-6 py-4 text-lg font-semibold tracking-wide">🎟 Enrollment No.</th>
+                        <th class="px-6 py-4 text-lg font-semibold tracking-wide">📧 Email</th>
+                    </tr>
+                </thead>
+
+                <!-- Table Body -->
+              <tbody class="divide-y divide-gray-100">
+    {% for student in students %}
+    <tr onclick="window.location.href='{% url 'mentor_dashboard' student.id %}'" 
+    class="cursor-pointer group transition duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-pink-50 hover:scale-[1.01]">
+
+
+        <!-- Name -->
+        <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 
+                        text-white flex items-center justify-center font-bold shadow-md 
+                        group-hover:scale-110 transition duration-300">
+                {{ student.user.username|first|upper }}
+            </div>
+            <span class="text-gray-800 text-base group-hover:text-indigo-600 transition">
+                {{ student.user.username }}
+            </span>
+        </td>
+
+        <!-- Enrollment -->
+        <td class="px-6 py-4">
+            {% if student.user.enrollment_no %}
+                <span class="bg-green-100 text-green-800 px-4 py-1.5 rounded-full 
+                             text-sm font-semibold shadow-sm transition 
+                             group-hover:shadow-md group-hover:scale-105 inline-block">
+                    {{ student.user.enrollment_no }}
+                </span>
+            {% else %}
+                <span class="bg-red-100 text-red-800 px-4 py-1.5 rounded-full 
+                             text-sm font-semibold shadow-sm transition 
+                             group-hover:shadow-md group-hover:scale-105 inline-block">
+                    Not Enrolled
+                </span>
+            {% endif %}
+        </td>
+
+        <!-- Email -->
+        <td class="px-6 py-4 text-gray-700 group-hover:text-purple-600 transition">
+            <a href="mailto:{{ student.user.email }}" class="hover:underline" onclick="event.stopPropagation();">
+                {{ student.user.email }}
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
+            </table>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-20">
+            <p class="text-gray-500 text-xl animate-bounce">🚫 No students found</p>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="text-center py-12">
-        <p class="text-gray-500 text-lg">No students found.</p>
-    </div>
-    {% endif %}
 </div>
+
+<!-- Gradient Animation -->
+<style>
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 6s ease infinite;
+}
+</style>
 {% endblock %}

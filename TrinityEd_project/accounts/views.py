@@ -8,11 +8,22 @@ from .models import User
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 class CustomLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = 'accounts/login.html'
+    
+    def get_success_url(self):
+        user = self.request.user
+        if user.is_student:
+            return reverse_lazy('student_dashboard')
+        elif user.is_mentor or user.is_admin_user:
+            return reverse_lazy('mentor_dashboard', kwargs={'student_id': user.id})
+        return reverse_lazy('student_dashboard')
+
     
     def get_success_url(self):
         user = self.request.user
@@ -28,10 +39,14 @@ class SignUpView(CreateView):
     template_name = 'accounts/signup.html'
     success_url = reverse_lazy('login')
     
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        login(self.request, self.object)
-        return redirect(self.get_success_url())
+    def get_success_url(self):
+        user = self.object
+        if user.is_student:
+            return reverse_lazy('student_dashboard')
+        elif user.is_mentor or user.is_admin_user:
+            return reverse_lazy('mentor_dashboard', kwargs={'student_id': user.id})
+        return reverse_lazy('student_dashboard')
+
     
     def get_success_url(self):
         user = self.object
@@ -40,7 +55,6 @@ class SignUpView(CreateView):
         elif user.is_mentor or user.is_admin_user:
             return reverse_lazy('mentor_dashboard')
         return reverse_lazy('student_dashboard')
-
 
 def custom_logout(request):
     logout(request)

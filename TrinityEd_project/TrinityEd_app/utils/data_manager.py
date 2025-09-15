@@ -1,37 +1,50 @@
+# TrinityEd_app/utils/data_manager.py
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-import sqlite3
-import os
-from typing import List, Dict, Any, Optional
-import json
+from TrinityEd_app.models import Student, Attendance, Performance
+
 
 class DataManager:
     """
-    Data Manager class for handling all student data operations.
-    Manages database connections, data retrieval, and data processing.
+    Data Manager for handling all student data operations.
+    Now uses Django ORM instead of direct SQLite access.
     """
-    
-    def __init__(self, db_path: str):
-        self.db_path = db_path
-        # Removed init_database call; assume existing database
-    
-    def init_database(self):
-        """Initialize the database and create tables if they don't exist."""
-        pass  # Removed all table creation logic; use existing Django models instead
-    
-    def create_sample_data(self):
-        """Create sample student data for testing and demonstration."""
-        pass  # Removed all sample data creation; fetch from existing models
-    
-    def get_connection(self):
-        """Get database connection."""
-        return sqlite3.connect(self.db_path)
-    
-    # [Rest of the methods remain unchanged for brevity]
-    # Include all other methods (get_students_overview, get_all_students, etc.) as in your provided code
-    # ...
-    
-    def close_connection(self):
-        """Close database connection."""
-        pass  # Connections are closed after each operation
+
+    def __init__(self):
+        # No external db_path or connection needed
+        pass
+
+    def get_students_overview(self):
+        """
+        Return DataFrame with student ID, attendance %, average score, risk flag.
+        """
+        students = Student.objects.all().values(
+            "id", "attendance_percentage", "average_score", "is_at_risk"
+        )
+        return pd.DataFrame(list(students))
+
+    def get_all_students(self):
+        """
+        Return DataFrame of all students with linked user info.
+        """
+        students = Student.objects.select_related("user").all().values(
+            "id", "user__username", "attendance_percentage", "average_score", "is_at_risk"
+        )
+        return pd.DataFrame(list(students))
+
+    def get_attendance(self):
+        """
+        Return DataFrame of all attendance records.
+        """
+        qs = Attendance.objects.all().values("student_id", "percentage", "week", "recorded_date")
+        return pd.DataFrame(list(qs))
+
+    def get_performance(self):
+        """
+        Return DataFrame of all performance records.
+        """
+        qs = Performance.objects.all().values("student_id", "score", "test_name", "test_date")
+        return pd.DataFrame(list(qs))
+
+    # If you had more helper methods in the old DataManager (like filtering,
+    # aggregating, etc.), they can now wrap Django ORM queries instead of SQL.
+

@@ -1,5 +1,5 @@
-  {% extends "base.html" %}
-{% load static %}
+{% extends "base.html" %}
+{% load static template_filters %}
 
 {% block title %}Mentor Dashboard | TrinityEd{% endblock %}
 
@@ -101,7 +101,6 @@
     .icon-box:hover {
       transform: rotate(10deg) scale(1.15);
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      transition: all 0.5s ease;
     }
 
     /* Progress Ring */
@@ -182,11 +181,11 @@
       border: 1px solid rgba(37,99,235,0.15);
     }
     .chart-box:hover, .table-box:hover { 
-      transform: scale(1.05); 
+      transform: scale(1.02); 
       box-shadow: 0 14px 32px rgba(37,99,235,0.28);
     }
 
-    /* ✨ Shimmer Effect */
+    /* ✨ Shimmer Effect (Run Once) */
     .chart-box::before, .table-box::before {
       content: "";
       position: absolute;
@@ -194,12 +193,12 @@
       width: 200%; height: 200%;
       background: linear-gradient(120deg, rgba(255,255,255,0.35), transparent, rgba(255,255,255,0.35));
       transform: rotate(25deg);
-      animation: shimmer 6s linear infinite;
+      animation: shimmer 1.5s ease-out forwards;
       pointer-events: none;
     }
     @keyframes shimmer {
-      0% { transform: translateX(-50%) rotate(25deg); }
-      100% { transform: translateX(50%) rotate(25deg); }
+      0% { transform: translateX(-50%) rotate(25deg); opacity: 1; }
+      100% { transform: translateX(50%) rotate(25deg); opacity: 0; }
     }
 
     /* Table Styling */
@@ -229,15 +228,15 @@
 
     /* FadeUp and FadeIn */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(25px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(25px) scale(0.95); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .animate-fadeIn {
-      animation: fadeIn 0.8s forwards;
+      animation: fadeIn 0.8s ease forwards;
     }
     .delay-100 { animation-delay: 0.1s; }
     .delay-200 { animation-delay: 0.2s; }
@@ -250,6 +249,36 @@
     svg defs linearGradient#gradientRed stop:nth-child(2) { stop-color: #f87171; }
     svg defs linearGradient#gradientGreen stop:nth-child(1) { stop-color: #10b981; }
     svg defs linearGradient#gradientGreen stop:nth-child(2) { stop-color: #34d399; }
+
+    /* Student Insights Section */
+    .insights-list {
+      list-style: none;
+      padding: 0;
+    }
+    .insights-item {
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .insights-item:hover {
+      background: rgba(37,99,235,0.05);
+      transform: translateY(-2px);
+    }
+    .insights-item::before {
+      content: "📊";
+      position: absolute;
+      left: -28px;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: all 0.3s ease;
+    }
+    .insights-item:hover::before {
+      opacity: 1;
+      transform: translateX(0);
+    }
   </style>
 </head> 
 
@@ -278,7 +307,9 @@
       <span id="btnClose" class="mac-btn red"></span>
       <span id="btnMinimize" class="mac-btn yellow"></span>
       <span id="btnMaximize" class="mac-btn green"></span>
-      <span class="ml-4 font-medium text-gray-600">Mentor Dashboard</span>
+      <span class="ml-4 font-medium text-gray-600">
+        Mentor Dashboard{% if student %} - {{ student.user.username }}{% endif %}
+      </span>
     </div>
 
     <!-- Main Content -->
@@ -376,7 +407,7 @@
               <tr class="alert-item">
                 <td>{{ student.student_name }}</td>
                 <td>{{ student.grade_level }}</td>
-                <td class="risk-level-{{ student.risk_level_hyphenated }}">{{ student.risk_level }}</td>
+                <td class="risk-level-{{ student.risk_level|lower|replace:" ,-" }}">{{ student.risk_level }}</td>
                 <td>{{ student.risk_score|floatformat:1 }}</td>
                 <td>{{ student.primary_risk_factors }}</td>
               </tr>
@@ -396,7 +427,7 @@
           <h4 class="text-md font-medium text-gray-600">Executive Summary</h4>
           <p class="text-gray-700">{{ insights.executive_summary|default:"No summary available." }}</p>
         </div>
-        <div>
+        <div class="mb-4">
           <h4 class="text-md font-medium text-gray-600">Key Findings</h4>
           <ul class="list-disc pl-5 text-gray-700">
             {% for finding in insights.key_findings %}
@@ -406,15 +437,37 @@
             {% endfor %}
           </ul>
         </div>
+        <div>
+          <h4 class="text-md font-medium text-gray-600">Student-Specific Insights</h4>
+          <ul class="insights-list" role="list" aria-label="AI-generated insights for high-risk students">
+            {% for insight in insights.student_insights %}
+              <li class="insights-item">
+                <h5 class="text-sm font-semibold text-gray-800">{{ insight.student_name }} ({{ insight.risk_level }} Risk)</h5>
+                <p class="text-gray-700"><strong>Analysis:</strong> {{ insight.analysis|default:"No analysis available." }}</p>
+                <p class="text-gray-700"><strong>Interventions:</strong></p>
+                <ul class="list-disc pl-5 text-gray-700">
+                  {% for intervention in insight.interventions %}
+                    <li>{{ intervention }}</li>
+                  {% empty %}
+                    <li>No interventions suggested.</li>
+                  {% endfor %}
+                </ul>
+                <p class="text-gray-700"><strong>Success Probability:</strong> {{ insight.success_probability|default:0 }}%</p>
+              </li>
+            {% empty %}
+              <li class="text-gray-500">No student-specific insights available.</li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
 
       <!-- Alerts Section -->
       <div class="table-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Recent Alerts</h3>
-        <ul class="divide-y divide-gray-200">
+        <ul class="divide-y divide-gray-200" role="list" aria-label="Recent alerts for students">
           {% for alert in alerts %}
             <li class="alert-item py-2 flex justify-between rounded-md px-2">
-              <span>{{ alert.student }} - {{ alert.issue }}</span>
+              <span>{{ alert.student.user.username }} - {{ alert.description|default:alert.title }}</span>
               <span class="alert-badge bg-red-100 text-red-600">Critical</span>
             </li>
           {% empty %}

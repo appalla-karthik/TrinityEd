@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to TrinityEd</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <tr>
+      <td align="center" style="padding: 20px;">
+        <h1 style="color: #4b5cc4; font-size: 28px; font-weight: bold; margin: 0;">Welcome to TrinityEd!</h1>
+        <p style="font-size: 16px; color: #666; margin: 10px 0;">Hello {{ first_name }},</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 20px;">
+        <p style="font-size: 14px; line-height: 1.5;">
+          Thank you for joining the TrinityEd Student Success System! We're excited to have you on board as a <strong>{{ role }}</strong>.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5;">
+          Your account has been successfully created. You can now log in to access your personalized dashboard and start exploring the features tailored to your role.
+        </p>
+        <p style="text-align: center; margin: 20px 0;">
+          <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'login' %}" style="display: inline-block; padding: 10px 20px; background-color: #4b5cc4; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Log In to Your Dashboard</a>
+        </p>
+        <p style="font-size: 12px; color: #666; text-align: center;">
+          If you have any questions, feel free to contact us at <a href="mailto:support@trinityed.com" style="color: #4b5cc4; text-decoration: none;">support@trinityed.com</a>.
+        </p>
+        <p style="font-size: 12px; color: #666; text-align: center; margin-top: 10px;">
+          &copy; 2025 TrinityEd. All rights reserved.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
