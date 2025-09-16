@@ -283,39 +283,56 @@ def mark_alert_read(request):
             return JsonResponse({'status': 'error', 'message': 'Alert not found'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request')
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 # ------------------- Student Dashboard -------------------
 @login_required
-def student(request):
-    user = request.user
-    attendance_weeks = ["Week 1", "Week 2", "Week 3", "Week 4"]
-    attendance_values = [a.percentage for a in Attendance.objects.filter(student__user=user).order_by('date')] if user.is_student else [0, 0, 0, 0]
-    latest_attendance = attendance_values[-1] if attendance_values else 0
+def student_dashboard(request):
+    # Get logged-in student
+    student = Student.objects.get(user=request.user)
 
-    performance_data = Performance.objects.filter(student__user=user).order_by('test_date')
-    score_values = [p.score for p in performance_data] if performance_data.exists() else [0, 0, 0]
-    while len(score_values) < 3: score_values.append(0)
-    avg_score = sum(score_values) / len(score_values) if score_values else 0
-    is_at_risk = latest_attendance < 75 or avg_score < 70
+    # Attendance (example: calculate %)
+    total_classes = Attendance.objects.filter(student=student).count()
+    present_classes = Attendance.objects.filter(student=student, status="Present").count()
+    attendance_rate = round((present_classes / total_classes) * 100, 1) if total_classes > 0 else 0
 
+    # GPA (example from Performance model)
+    avg_score = Performance.objects.filter(student=student).aggregate(avg=models.Avg("score"))["avg"] or 0
+    gpa = round((avg_score / 100) * 4, 2)  # convert percentage → GPA (scale of 4)
+
+    # Credits earned
+    credits_earned = student.credits_earned
+    total_credits = student.total_credits
+
+    # Notifications
+    notifications = list(Alert.objects.filter(student=student).values_list("message", flat=True))
+
+    # Messages (example risk + warnings)
+    dropout_risk = "High" if attendance_rate < 75 or gpa < 2 else "Low"
     messages = []
-    if latest_attendance < 80: messages.append(f"⚠️ Your attendance dropped below {latest_attendance}%.")
-    if score_values[-1] > 70: messages.append("✅ Good improvement in recent test!")
+    if attendance_rate < 75:
+        messages.append("⚠️ Low attendance may affect your progress.")
+    if gpa < 2:
+        messages.append("📉 GPA below 2.0, consider improving performance.")
+    if not messages:
+        messages.append("✅ You are on track!")
 
     context = {
-        "student_name": user.get_full_name() or user.username,
-        "attendance": latest_attendance,
-        "avg_score": round(avg_score, 2),
-        "dropout_risk": "High" if is_at_risk else "Low",
-        "role": user.role,
-        "attendance_weeks": json.dumps(attendance_weeks),
-        "attendance_values": json.dumps(attendance_values[:4]),
-        "score_tests": json.dumps(["Test 1", "Test 2", "Test 3"]),
-        "score_values": json.dumps(score_values[:3]),
-        "messages": messages
+        "student_name": student.name,
+        "student_id": student.id,
+        "grade": student.grade,
+        "email": student.user.email,
+        "phone": student.phone,
+        "gpa": gpa,
+        "attendance_rate": attendance_rate,
+        "credits_earned": credits_earned,
+        "total_credits": total_credits,
+        "incidents": student.incidents_count,
+        "notifications": notifications,
+        "dropout_risk": dropout_risk,
+        "messages": messages,
     }
-    return render(request, "student.html", context)
+    return render(request, "student_dashboard.html", context)
 
 # ------------------- Other Pages -------------------
 @login_required

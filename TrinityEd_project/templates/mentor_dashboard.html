@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% load static template_filters %}
 
 {% block title %}Mentor Dashboard | TrinityEd{% endblock %}
 
 {% block content %}
+
 <head>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -16,11 +16,22 @@
       animation: gradientShift 12s ease infinite;
       font-family: 'Inter', system-ui, sans-serif;
       scroll-behavior: smooth;
+      overflow: hidden;
+      /* Prevent body-level scrolling */
     }
+
     @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
     }
 
     /* macOS Window */
@@ -29,10 +40,15 @@
       margin: 2rem auto;
       border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
       background: #fff;
       transition: all 0.3s ease;
+      height: 90vh;
+      /* Explicit height */
+      display: flex;
+      flex-direction: column;
     }
+
     .mac-header {
       background: #f1f1f1;
       padding: 8px 12px;
@@ -40,42 +56,72 @@
       align-items: center;
       gap: 8px;
     }
+
     .mac-btn {
-      width: 14px; height: 14px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       display: inline-block;
       cursor: pointer;
     }
-    .mac-btn.red { background: #ff5f57; }
-    .mac-btn.yellow { background: #ffbd2f; }
-    .mac-btn.green { background: #28c840; }
+
+    .mac-btn.red {
+      background: #ff5f57;
+    }
+
+    .mac-btn.yellow {
+      background: #ffbd2f;
+    }
+
+    .mac-btn.green {
+      background: #28c840;
+    }
 
     /* Sidebar Anim */
-    @keyframes slideInLeft { 
-      from { opacity: 0; transform: translateX(-30px); } 
-      to { opacity: 1; transform: translateX(0); } 
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
-    aside { animation: slideInLeft 0.7s ease-out; }
+
+    aside {
+      animation: slideInLeft 0.7s ease-out;
+    }
+
     .sidebar-link {
       transition: all 0.3s ease;
       border-radius: 12px;
       position: relative;
       overflow: hidden;
     }
+
     .sidebar-link::after {
       content: "";
       position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(37,99,235,0.1), transparent);
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.1), transparent);
       transition: left 0.4s ease;
     }
-    .sidebar-link:hover::after { left: 100%; }
+
+    .sidebar-link:hover::after {
+      left: 100%;
+    }
+
     .sidebar-link:hover {
       color: #2563eb;
       transform: translateX(6px);
       box-shadow: inset 4px 0 0 #2563eb;
     }
+
     .active-link {
       background: linear-gradient(90deg, #2563eb33, #2563eb11);
       color: #2563eb;
@@ -84,23 +130,26 @@
 
     /* Stat Cards */
     .stat-card {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(15px);
       border-radius: 20px;
-      border: 1px solid rgba(37,99,235,0.1);
+      border: 1px solid rgba(37, 99, 235, 0.1);
       transition: transform 0.5s ease, box-shadow 0.5s ease;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
+
     .icon-box {
       transition: all 0.3s ease;
       position: relative;
     }
+
     .stat-card:hover {
-      box-shadow: 0 8px 32px rgba(37,99,235,0.25);
+      box-shadow: 0 8px 32px rgba(37, 99, 235, 0.25);
     }
+
     .icon-box:hover {
       transform: rotate(10deg) scale(1.15);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
     /* Progress Ring */
@@ -113,27 +162,53 @@
       filter: drop-shadow(0 0 10px currentColor);
       transition: stroke-dashoffset 1.5s ease, stroke 0.5s ease;
     }
-    .gradient-blue { stroke: url(#gradientBlue); }
-    .gradient-red { stroke: url(#gradientRed); }
-    .gradient-green { stroke: url(#gradientGreen); }
+
+    .gradient-blue {
+      stroke: url(#gradientBlue);
+    }
+
+    .gradient-red {
+      stroke: url(#gradientRed);
+    }
+
+    .gradient-green {
+      stroke: url(#gradientGreen);
+    }
 
     /* Material Icons Bounce */
     .material-icons {
       animation: bounce 1.5s infinite;
     }
+
     @keyframes bounce {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
     }
 
     /* Count Up Pulse */
     .count-up {
       animation: pulse 1s ease-in-out forwards;
     }
+
     @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.15); }
-      100% { transform: scale(1); }
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.15);
+      }
+
+      100% {
+        transform: scale(1);
+      }
     }
 
     /* Alerts */
@@ -144,10 +219,12 @@
       transform-origin: left;
       position: relative;
     }
+
     .alert-item:hover {
-      background: rgba(37,99,235,0.05);
+      background: rgba(37, 99, 235, 0.05);
       border-radius: 10px;
     }
+
     .alert-item::before {
       content: "⚠️";
       position: absolute;
@@ -156,10 +233,12 @@
       transform: translateX(-8px);
       transition: all 0.3s ease;
     }
+
     .alert-item:hover::before {
       opacity: 1;
       transform: translateX(0);
     }
+
     .alert-badge {
       padding: 3px 10px;
       border-radius: 12px;
@@ -168,7 +247,8 @@
     }
 
     /* Charts and Tables */
-    .chart-box, .table-box {
+    .chart-box,
+    .table-box {
       animation: fadeUp 1s ease forwards;
       opacity: 0;
       transform-origin: bottom;
@@ -176,29 +256,46 @@
       position: relative;
       overflow: hidden;
       border-radius: 20px;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(37,99,235,0.15);
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      max-height: 400px;
+      /* Limit height to prevent overflow */
+      overflow-y: auto;
+      /* Controlled scrolling within boxes */
     }
-    .chart-box:hover, .table-box:hover { 
-      transform: scale(1.02); 
-      box-shadow: 0 14px 32px rgba(37,99,235,0.28);
+
+    .chart-box:hover,
+    .table-box:hover {
+      transform: scale(1.02);
+      box-shadow: 0 14px 32px rgba(37, 99, 235, 0.28);
     }
 
     /* ✨ Shimmer Effect (Run Once) */
-    .chart-box::before, .table-box::before {
+    .chart-box::before,
+    .table-box::before {
       content: "";
       position: absolute;
-      top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background: linear-gradient(120deg, rgba(255,255,255,0.35), transparent, rgba(255,255,255,0.35));
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.35), transparent, rgba(255, 255, 255, 0.35));
       transform: rotate(25deg);
       animation: shimmer 1.5s ease-out forwards;
       pointer-events: none;
     }
+
     @keyframes shimmer {
-      0% { transform: translateX(-50%) rotate(25deg); opacity: 1; }
-      100% { transform: translateX(50%) rotate(25deg); opacity: 0; }
+      0% {
+        transform: translateX(-50%) rotate(25deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateX(50%) rotate(25deg);
+        opacity: 0;
+      }
     }
 
     /* Table Styling */
@@ -207,66 +304,130 @@
       border-collapse: separate;
       border-spacing: 0;
     }
-    .risk-table th, .risk-table td {
+
+    .risk-table th,
+    .risk-table td {
       padding: 12px;
       text-align: left;
-      border-bottom: 1px solid rgba(37,99,235,0.1);
+      border-bottom: 1px solid rgba(37, 99, 235, 0.1);
     }
+
     .risk-table th {
       background: #f8fafc;
       font-weight: 600;
       color: #2563eb;
     }
+
     .risk-table tr:hover {
-      background: rgba(37,99,235,0.05);
+      background: rgba(37, 99, 235, 0.05);
     }
-    .risk-level-very-high { color: #dc2626; }
-    .risk-level-high { color: #ef4444; }
-    .risk-level-medium { color: #f59e0b; }
-    .risk-level-low { color: #10b981; }
-    .risk-level-very-low { color: #22c55e; }
+
+    .risk-level-very-high {
+      color: #dc2626;
+    }
+
+    .risk-level-high {
+      color: #ef4444;
+    }
+
+    .risk-level-medium {
+      color: #f59e0b;
+    }
+
+    .risk-level-low {
+      color: #10b981;
+    }
+
+    .risk-level-very-low {
+      color: #22c55e;
+    }
 
     /* FadeUp and FadeIn */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     .animate-fadeIn {
       animation: fadeIn 0.8s ease forwards;
     }
-    .delay-100 { animation-delay: 0.1s; }
-    .delay-200 { animation-delay: 0.2s; }
-    .delay-300 { animation-delay: 0.3s; }
+
+    .delay-100 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-200 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-300 {
+      animation-delay: 0.3s;
+    }
 
     /* SVG Gradients for Progress Rings */
-    svg defs linearGradient#gradientBlue stop:nth-child(1) { stop-color: #2563eb; }
-    svg defs linearGradient#gradientBlue stop:nth-child(2) { stop-color: #3b82f6; }
-    svg defs linearGradient#gradientRed stop:nth-child(1) { stop-color: #ef4444; }
-    svg defs linearGradient#gradientRed stop:nth-child(2) { stop-color: #f87171; }
-    svg defs linearGradient#gradientGreen stop:nth-child(1) { stop-color: #10b981; }
-    svg defs linearGradient#gradientGreen stop:nth-child(2) { stop-color: #34d399; }
+    svg defs linearGradient#gradientBlue stop:nth-child(1) {
+      stop-color: #2563eb;
+    }
+
+    svg defs linearGradient#gradientBlue stop:nth-child(2) {
+      stop-color: #3b82f6;
+    }
+
+    svg defs linearGradient#gradientRed stop:nth-child(1) {
+      stop-color: #ef4444;
+    }
+
+    svg defs linearGradient#gradientRed stop:nth-child(2) {
+      stop-color: #f87171;
+    }
+
+    svg defs linearGradient#gradientGreen stop:nth-child(1) {
+      stop-color: #10b981;
+    }
+
+    svg defs linearGradient#gradientGreen stop:nth-child(2) {
+      stop-color: #34d399;
+    }
 
     /* Student Insights Section */
     .insights-list {
       list-style: none;
       padding: 0;
     }
+
     .insights-item {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 10px;
       padding: 16px;
       margin-bottom: 12px;
       transition: all 0.3s ease;
       position: relative;
     }
+
     .insights-item:hover {
-      background: rgba(37,99,235,0.05);
+      background: rgba(37, 99, 235, 0.05);
       transform: translateY(-2px);
     }
+
     .insights-item::before {
       content: "📊";
       position: absolute;
@@ -275,28 +436,29 @@
       transform: translateX(-8px);
       transition: all 0.3s ease;
     }
+
     .insights-item:hover::before {
       opacity: 1;
       transform: translateX(0);
     }
   </style>
-</head> 
+</head>
 
 <body class="flex flex-col min-h-screen">
   <!-- SVG Definitions for Gradients -->
   <svg style="position: absolute; width: 0; height: 0;">
     <defs>
       <linearGradient id="gradientBlue">
-        <stop offset="0%" stop-color="#2563eb"/>
-        <stop offset="100%" stop-color="#3b82f6"/>
+        <stop offset="0%" stop-color="#2563eb" />
+        <stop offset="100%" stop-color="#3b82f6" />
       </linearGradient>
       <linearGradient id="gradientRed">
-        <stop offset="0%" stop-color="#ef4444"/>
-        <stop offset="100%" stop-color="#f87171"/>
+        <stop offset="0%" stop-color="#ef4444" />
+        <stop offset="100%" stop-color="#f87171" />
       </linearGradient>
       <linearGradient id="gradientGreen">
-        <stop offset="0%" stop-color="#10b981"/>
-        <stop offset="100%" stop-color="#34d399"/>
+        <stop offset="0%" stop-color="#10b981" />
+        <stop offset="100%" stop-color="#34d399" />
       </linearGradient>
     </defs>
   </svg>
@@ -313,10 +475,10 @@
     </div>
 
     <!-- Main Content -->
-    <main id="macContent" class="flex-1 p-8 overflow-y-auto animate-fadeIn">
+    <main id="macContent" class="flex-1 p-8 overflow-y-auto" style="max-height: calc(90vh - 40px);">
       <div class="flex justify-end mb-4">
-        <a href="{% url 'student_list' %}" 
-           class="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 text-white font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-300">
+        <a href="{% url 'student_list' %}"
+          class="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 text-white font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-300">
           <span class="material-icons text-sm">person_add</span>
           Add Student
         </a>
@@ -325,26 +487,33 @@
       <!-- Stats Cards Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <!-- Total Students Card -->
-        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+        <div
+          class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
           <div class="icon-box relative w-20 h-20 flex items-center justify-center">
             <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
-              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-              <circle class="progress-ring__circle gradient-blue" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60"
+                cy="60" />
+              <circle class="progress-ring__circle gradient-blue" stroke-width="10" fill="transparent" r="54" cx="60"
+                cy="60" />
             </svg>
             <span class="material-icons text-3xl text-blue-700">groups</span>
           </div>
           <div>
             <h3 class="text-sm font-medium text-gray-500">Total Students</h3>
-            <p class="text-3xl font-extrabold text-blue-700 count-up" data-target="{{ total_students }}">{{ total_students }}</p>
+            <p class="text-3xl font-extrabold text-blue-700 count-up" data-target="{{ total_students }}">{{
+              total_students }}</p>
           </div>
         </div>
 
         <!-- At-Risk Students Card -->
-        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+        <div
+          class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
           <div class="icon-box relative w-20 h-20 flex items-center justify-center">
             <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
-              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-              <circle class="progress-ring__circle gradient-red" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60"
+                cy="60" />
+              <circle class="progress-ring__circle gradient-red" stroke-width="10" fill="transparent" r="54" cx="60"
+                cy="60" />
             </svg>
             <span class="material-icons text-3xl text-red-600">warning</span>
           </div>
@@ -355,17 +524,21 @@
         </div>
 
         <!-- Alerts Sent Card -->
-        <div class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
+        <div
+          class="stat-card p-6 rounded-2xl flex items-center gap-5 hover:scale-105 transition-transform duration-500">
           <div class="icon-box relative w-20 h-20 flex items-center justify-center">
             <svg class="progress-ring w-20 h-20 absolute" viewBox="0 0 120 120">
-              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-              <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+              <circle class="progress-ring__bg" stroke="#ffffff33" stroke-width="10" fill="transparent" r="54" cx="60"
+                cy="60" />
+              <circle class="progress-ring__circle gradient-green" stroke-width="10" fill="transparent" r="54" cx="60"
+                cy="60" />
             </svg>
             <span class="material-icons text-3xl text-green-600">notifications_active</span>
           </div>
           <div>
             <h3 class="text-sm font-medium text-gray-500">Alerts Sent</h3>
-            <p class="text-3xl font-extrabold text-green-600 count-up" data-target="{{ alerts_sent }}">{{ alerts_sent }}</p>
+            <p class="text-3xl font-extrabold text-green-600 count-up" data-target="{{ alerts_sent }}">{{ alerts_sent }}
+            </p>
           </div>
         </div>
       </div>
@@ -380,12 +553,14 @@
         <!-- Performance Chart -->
         <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl delay-200">
           <h3 class="text-lg font-semibold mb-4 text-gray-700">Performance Overview</h3>
-          <canvas id="performanceChart" role="img" aria-label="Bar chart showing average performance scores by subject"></canvas>
+          <canvas id="performanceChart" role="img"
+            aria-label="Bar chart showing average performance scores by subject"></canvas>
         </div>
         <!-- Risk Distribution Chart -->
         <div class="chart-box bg-white/90 backdrop-blur-md p-6 border border-gray-200 shadow-md rounded-2xl delay-300">
           <h3 class="text-lg font-semibold mb-4 text-gray-700">Risk Distribution</h3>
-          <canvas id="riskDistributionChart" role="img" aria-label="Pie chart showing distribution of student dropout risk levels"></canvas>
+          <canvas id="riskDistributionChart" role="img"
+            aria-label="Pie chart showing distribution of student dropout risk levels"></canvas>
         </div>
       </div>
 
@@ -403,18 +578,16 @@
             </tr>
           </thead>
           <tbody>
-            {% for student in risk_data %}
-              <tr class="alert-item">
-                <td>{{ student.student_name }}</td>
-                <td>{{ student.grade_level }}</td>
-                <td class="risk-level-{{ student.risk_level|lower|replace:" ,-" }}">{{ student.risk_level }}</td>
-                <td>{{ student.risk_score|floatformat:1 }}</td>
-                <td>{{ student.primary_risk_factors }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="5" class="text-gray-500">No risk assessments available.</td>
-              </tr>
+            {% for student in risk_data %} <tr class="alert-item">
+              <td>{{ student.student_name }}</td>
+              <td>{{ student.grade_level }}</td>
+              <div id="risk-{{ risk.level|slugify }}" class="risk-card"> {{ risk.level }} </div>
+              <td>{{ student.risk_score|floatformat:1 }}</td>
+              <td>{{ student.primary_risk_factors }}</td>
+            </tr> {% empty %}
+            <tr>
+              <td colspan="5" class="text-gray-500">No risk assessments available.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -431,9 +604,9 @@
           <h4 class="text-md font-medium text-gray-600">Key Findings</h4>
           <ul class="list-disc pl-5 text-gray-700">
             {% for finding in insights.key_findings %}
-              <li class="alert-item">{{ finding }}</li>
+            <li class="alert-item">{{ finding }}</li>
             {% empty %}
-              <li class="text-gray-500">No key findings available.</li>
+            <li class="text-gray-500">No key findings available.</li>
             {% endfor %}
           </ul>
         </div>
@@ -441,21 +614,24 @@
           <h4 class="text-md font-medium text-gray-600">Student-Specific Insights</h4>
           <ul class="insights-list" role="list" aria-label="AI-generated insights for high-risk students">
             {% for insight in insights.student_insights %}
-              <li class="insights-item">
-                <h5 class="text-sm font-semibold text-gray-800">{{ insight.student_name }} ({{ insight.risk_level }} Risk)</h5>
-                <p class="text-gray-700"><strong>Analysis:</strong> {{ insight.analysis|default:"No analysis available." }}</p>
-                <p class="text-gray-700"><strong>Interventions:</strong></p>
-                <ul class="list-disc pl-5 text-gray-700">
-                  {% for intervention in insight.interventions %}
-                    <li>{{ intervention }}</li>
-                  {% empty %}
-                    <li>No interventions suggested.</li>
-                  {% endfor %}
-                </ul>
-                <p class="text-gray-700"><strong>Success Probability:</strong> {{ insight.success_probability|default:0 }}%</p>
-              </li>
+            <li class="insights-item">
+              <h5 class="text-sm font-semibold text-gray-800">{{ insight.student_name }} ({{ insight.risk_level }} Risk)
+              </h5>
+              <p class="text-gray-700"><strong>Analysis:</strong> {{ insight.analysis|default:"No analysis available."
+                }}</p>
+              <p class="text-gray-700"><strong>Interventions:</strong></p>
+              <ul class="list-disc pl-5 text-gray-700">
+                {% for intervention in insight.interventions %}
+                <li>{{ intervention }}</li>
+                {% empty %}
+                <li>No interventions suggested.</li>
+                {% endfor %}
+              </ul>
+              <p class="text-gray-700"><strong>Success Probability:</strong> {{ insight.success_probability|default:0
+                }}%</p>
+            </li>
             {% empty %}
-              <li class="text-gray-500">No student-specific insights available.</li>
+            <li class="text-gray-500">No student-specific insights available.</li>
             {% endfor %}
           </ul>
         </div>
@@ -466,12 +642,12 @@
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Recent Alerts</h3>
         <ul class="divide-y divide-gray-200" role="list" aria-label="Recent alerts for students">
           {% for alert in alerts %}
-            <li class="alert-item py-2 flex justify-between rounded-md px-2">
-              <span>{{ alert.student.user.username }} - {{ alert.description|default:alert.title }}</span>
-              <span class="alert-badge bg-red-100 text-red-600">Critical</span>
-            </li>
+          <li class="alert-item py-2 flex justify-between rounded-md px-2">
+            <span>{{ alert.student.user.username }} - {{ alert.description|default:alert.title }}</span>
+            <span class="alert-badge bg-red-100 text-red-600">Critical</span>
+          </li>
           {% empty %}
-            <li class="alert-item py-2 text-gray-500">No alerts at the moment.</li>
+          <li class="alert-item py-2 text-gray-500">No alerts at the moment.</li>
           {% endfor %}
         </ul>
       </div>
@@ -504,11 +680,11 @@
           macWindow.style.borderRadius = "14px";
           macContent.style.display = "block";
           isMaximized = false;
-          return;
+        } else {
+          macContent.style.display = "none";
+          macWindow.style.height = "60px";
+          macWindow.style.margin = "2rem auto";
         }
-        macContent.style.display = "none";
-        macWindow.style.height = "60px";
-        macWindow.style.margin = "2rem auto";
       } else {
         macContent.style.display = "block";
         macWindow.style.height = "90vh";
@@ -536,6 +712,7 @@
       macContent.style.display = "block";
       isMaximized = !isMaximized;
       if (isMaximized) isMinimized = false;
+      macContent.scrollTop = 0; // Reset scroll position
     });
 
     // Count-up Animation
@@ -576,93 +753,93 @@
     new Chart(ctx1, {
       type: 'line',
       data: {
-        labels: {{ attendance_labels|safe }},
-        datasets: [{
-          label: 'Attendance %',
-          data: {{ attendance_data|safe }},
-          borderColor: '#2563eb',
-          backgroundColor: gradientBlue,
-          fill: true,
-          tension: 0.35,
-          borderWidth: 3,
-          pointRadius: 6,
-          pointHoverRadius: 9,
-          pointHoverBackgroundColor: "#fff",
-          pointHoverBorderColor: "#2563eb",
-          pointHoverBorderWidth: 3
+        labels: {{ attendance_labels| safe }},
+      datasets: [{
+        label: 'Attendance %',
+        data: {{ attendance_data| safe }},
+      borderColor: '#2563eb',
+      backgroundColor: gradientBlue,
+      fill: true,
+      tension: 0.35,
+      borderWidth: 3,
+      pointRadius: 6,
+      pointHoverRadius: 9,
+      pointHoverBackgroundColor: "#fff",
+      pointHoverBorderColor: "#2563eb",
+      pointHoverBorderWidth: 3
         }]
       },
       options: {
-        plugins: {
-          tooltip: {
-            enabled: true,
-            callbacks: {
-              label: function(context) {
-                let val = context.raw;
-                return val < 70 ? `⚠ Low Attendance: ${val}%` : `✅ Attendance: ${val}%`;
-              }
+      plugins: {
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function (context) {
+              let val = context.raw;
+              return val < 70 ? `⚠ Low Attendance: ${val}%` : `✅ Attendance: ${val}%`;
             }
           }
-        },
-        interaction: {
-          mode: 'nearest',
-          intersect: false
-        },
-        scales: {
-          y: { max: 100, beginAtZero: true }
         }
+      },
+      interaction: {
+        mode: 'nearest',
+        intersect: false
+      },
+      scales: {
+        y: { max: 100, beginAtZero: true }
       }
+    }
     });
 
     // Performance Chart
     const ctx2 = document.getElementById('performanceChart').getContext('2d');
     const gradients = [
-      ['rgba(37,99,235,0.9)','rgba(37,99,235,0.6)'],
-      ['rgba(219,39,119,0.9)','rgba(219,39,119,0.6)'],
-      ['rgba(217,119,6,0.9)','rgba(217,119,6,0.6)'],
-      ['rgba(5,150,105,0.9)','rgba(5,150,105,0.6)']
+      ['rgba(37,99,235,0.9)', 'rgba(37,99,235,0.6)'],
+      ['rgba(219,39,119,0.9)', 'rgba(219,39,119,0.6)'],
+      ['rgba(217,119,6,0.9)', 'rgba(217,119,6,0.6)'],
+      ['rgba(5,150,105,0.9)', 'rgba(5,150,105,0.6)']
     ];
     const bgColors = gradients.map(g => {
-      let grad = ctx2.createLinearGradient(0,0,0,400);
-      grad.addColorStop(0,g[0]);
-      grad.addColorStop(1,g[1]);
+      let grad = ctx2.createLinearGradient(0, 0, 0, 400);
+      grad.addColorStop(0, g[0]);
+      grad.addColorStop(1, g[1]);
       return grad;
     });
 
     new Chart(ctx2, {
       type: 'bar',
       data: {
-        labels: {{ performance_subjects|safe }},
-        datasets: [{
-          label: 'Average Score',
-          data: {{ performance_data|safe }},
-          borderRadius: 14,
-          backgroundColor: bgColors,
-          hoverBackgroundColor: ["#1d4ed8","#be185d","#b45309","#047857"]
+        labels: {{ performance_subjects| safe }},
+      datasets: [{
+        label: 'Average Score',
+        data: {{ performance_data| safe }},
+      borderRadius: 14,
+      backgroundColor: bgColors,
+      hoverBackgroundColor: ["#1d4ed8", "#be185d", "#b45309", "#047857"]
         }]
       },
       options: {
-        plugins: {
-          tooltip: {
-            enabled: true,
-            callbacks: {
-              label: function(context) {
-                let val = context.raw;
-                if (val < 70) return `❌ Below Avg: ${val}`;
-                if (val >= 70 && val < 80) return `⚠ Needs Improvement: ${val}`;
-                return `⭐ Excellent: ${val}`;
-              }
+      plugins: {
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function (context) {
+              let val = context.raw;
+              if (val < 70) return `❌ Below Avg: ${val}`;
+              if (val >= 70 && val < 80) return `⚠ Needs Improvement: ${val}`;
+              return `⭐ Excellent: ${val}`;
             }
           }
-        },
-        interaction: {
-          mode: 'index',
-          intersect: false
-        },
-        scales: {
-          y: { max: 100, beginAtZero: true }
         }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        y: { max: 100, beginAtZero: true }
       }
+    }
     });
 
     // Risk Distribution Chart
@@ -677,34 +854,34 @@
         labels: ['Very High', 'High', 'Medium', 'Low', 'Very Low'],
         datasets: [{
           data: [
-            {{ insights.risk_distribution.Very_High|default:0 }},
-            {{ insights.risk_distribution.High|default:0 }},
-            {{ insights.risk_distribution.Medium|default:0 }},
-            {{ insights.risk_distribution.Low|default:0 }},
-            {{ insights.risk_distribution.Very_Low|default:0 }}
+            {{ insights.risk_distribution.Very_High |default: 0 }},
+        {{ insights.risk_distribution.High |default: 0 }},
+            {{ insights.risk_distribution.Medium |default: 0 }},
+      {{ insights.risk_distribution.Low |default: 0 }},
+      {{ insights.risk_distribution.Very_Low |default: 0 }}
           ],
-          backgroundColor: ['#dc2626', '#ef4444', '#f59e0b', '#10b981', '#22c55e'],
-          hoverBackgroundColor: ['#b91c1c', '#dc2626', '#d97706', '#059669', '#16a34a'],
-          borderColor: '#fff',
-          borderWidth: 2
+      backgroundColor: ['#dc2626', '#ef4444', '#f59e0b', '#10b981', '#22c55e'],
+      hoverBackgroundColor: ['#b91c1c', '#dc2626', '#d97706', '#059669', '#16a34a'],
+      borderColor: '#fff',
+      borderWidth: 2
         }]
       },
       options: {
-        plugins: {
-          tooltip: {
-            enabled: true,
-            callbacks: {
-              label: function(context) {
-                let label = context.label || '';
-                let value = context.raw || 0;
-                return `${label}: ${value} students`;
-              }
+      plugins: {
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function (context) {
+              let label = context.label || '';
+              let value = context.raw || 0;
+              return `${label}: ${value} students`;
             }
           }
-        },
-        responsive: true,
-        maintainAspectRatio: false
-      }
+        }
+      },
+      responsive: true,
+      maintainAspectRatio: false
+    }
     });
   </script>
 </body>

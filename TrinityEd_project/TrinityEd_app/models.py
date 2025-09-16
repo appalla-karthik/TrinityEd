@@ -101,6 +101,13 @@ class Alert(models.Model):
     icon = models.CharField(max_length=50, default='notifications')
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    student = models.ForeignKey(
+        'Student',  # Reference to Student model
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='alerts'  # Optional: for reverse querying
+    )
 
     def __str__(self):
         return self.title or "Alert"
