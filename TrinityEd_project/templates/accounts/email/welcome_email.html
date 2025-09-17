@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to TrinityEd</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-3xl font-extrabold text-indigo-600">Welcome to TrinityEd!</h1>
+            <p class="mt-2 text-lg text-gray-600">Hello {{ first_name }},</p>
+        </div>
+
+        <!-- Content -->
+        <div class="mt-6 text-gray-700">
+            <p class="text-base">
+                Thank you for joining the TrinityEd Student Success System! We're excited to have you on board as a {{
+                role }}.
+            </p>
+            <p class="mt-4 text-base">
+                Your account has been successfully created. You can now log in to access your personalized dashboard and
+                start exploring the features tailored to your role.
+            </p>
+            <div class="mt-6 text-center">
+                <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'login' %}"
+                    class="inline-block py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                    Log In to Your Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center text-sm text-gray-500">
+            <p>If you have any questions, feel free to contact us at <a href="mailto:support@trinityed.com"
+                    class="text-indigo-600 hover:underline">support@trinityed.com</a>.</p>
+            <p class="mt-2">&copy; 2025 TrinityEd. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

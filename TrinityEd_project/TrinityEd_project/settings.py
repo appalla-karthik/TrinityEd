@@ -106,15 +106,22 @@ MEDIA_ROOT = BASE_DIR / 'media'
 #     ],
 # }
 
-# Login/Logout URLs
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For testing
-# Or use a real email backend like SMTP
-DEFAULT_FROM_EMAIL = 'godanishubham30@gmail.com'
+# EMAIL Auth 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "godanishubham30@gmail.com"
+EMAIL_HOST_PASSWORD = "cjiu mtga qdmd elna"  
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Login/Logout URLs
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'

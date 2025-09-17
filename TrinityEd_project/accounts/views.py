@@ -8,7 +8,9 @@ from .models import User
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 class CustomLoginView(LoginView):
     form_class = CustomAuthenticationForm
@@ -30,6 +32,27 @@ class SignUpView(CreateView):
     
     def form_valid(self, form):
         response = super().form_valid(form)
+        user = self.object
+        
+        # Send welcome email
+        subject = 'Welcome to TrinityEd - Your Account Has Been Created!'
+        html_message = render_to_string('accounts/email/welcome_email.html', {
+            'user': user,
+            'first_name': user.first_name,
+            'role': user.get_role_display(),
+        })
+        plain_message = strip_tags(html_message)
+        from_email = 'godanishubham30@gmail.com'
+        to_email = user.email
+        
+        send_mail(
+            subject,
+            plain_message,
+            from_email,
+            [to_email],
+            html_message=html_message,
+        )
+        
         login(self.request, self.object)
         return redirect(self.get_success_url())
     
@@ -40,7 +63,6 @@ class SignUpView(CreateView):
         elif user.is_mentor or user.is_admin_user:
             return reverse_lazy('mentor_dashboard')
         return reverse_lazy('student_dashboard')
-
 
 def custom_logout(request):
     logout(request)
