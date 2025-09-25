@@ -55,6 +55,39 @@
     .yellow { background:#facc15; }
     .green { background:#22c55e; }
     .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color:#374151; }
+    /* Summary Cards Animation (same as student-card) */
+.summary-card {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card:hover {
+  transform: translateY(-8px) scale(1.07);
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+  border-color: rgba(59,130,246,0.5);
+  background-color: rgb(76, 191, 80);
+}
+
+.summary-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(16,185,129,0.08));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.summary-card:hover::after {
+  opacity: 1;
+}
+
+.summary-card:hover p {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
     /* Table & badges */
     .table-row { transition: all 0.3s ease; cursor: pointer; }
     .table-row:hover { background: #e0e7ff; transform: scale(1.02); }
@@ -66,8 +99,42 @@
     .chart-box { transition: transform 0.35s ease; border-radius: 18px; }
     .chart-box:hover { transform: scale(1.05); }
     /* Student cards */
-    .student-card { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
-    .student-card:hover { transform: scale(1.05); box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+    /* Student cards with animation */
+.student-card {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glow + Lift effect */
+.student-card:hover {
+  transform: translateY(-8px) scale(1.07);
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+  border-color: rgba(59,130,246,0.5); /* light blue border */
+}
+
+/* Subtle gradient highlight on hover */
+.student-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(16,185,129,0.08));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.student-card:hover::after {
+  opacity: 1;
+}
+
+/* Inner content small pop effect */
+.student-card:hover p,
+.student-card:hover span {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
     /* Dock styles */
     .dock {
       position: fixed; bottom: 20px; left: 50%;
@@ -110,10 +177,10 @@
     <main id="macContent" class="flex-1 p-8 overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">Attendance</h1>
-        <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl shadow-md hover:scale-105 transition">Export CSV</button>
+        <!-- <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl shadow-md hover:scale-105 transition">Export CSV</button> -->
       </div>
 
-      <!-- Summary Cards -->
+    <!-- Summary Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl p-4 flex flex-col items-center">
           <p class="text-gray-500 font-medium">Total Students</p>
@@ -127,7 +194,7 @@
           <p class="text-gray-500 font-medium">Students At Risk</p>
           <p class="text-2xl font-bold text-red-600">{{ at_risk_students }}</p>
         </div>
-      </div>
+     </div>
 
       <!-- Student Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -163,7 +230,7 @@
         <table class="min-w-full divide-y divide-gray-200" id="attendanceTable">
           <thead class="bg-blue-50">
             <tr>
-              <th class="px-6 py-3">#</th>
+              <th class="px-6 py-3">Id</th>
               <th class="px-6 py-3">Student Name</th>
               <th class="px-6 py-3">Class</th>
               <th class="px-6 py-3">Attendance %</th>

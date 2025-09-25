@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Counsellor | TrinityEd{% endblock %}
+
+{% block extra_head %}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { 
+      background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff); 
+      background-size: 300% 300%; 
+      animation: gradientShift 12s ease infinite; 
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    @keyframes gradientShift { 
+      0% {background-position:0% 50%} 
+      50% {background-position:100% 50%} 
+      100% {background-position:0% 50%} 
+    }
+
+    .mac-window {
+      width: 95%;
+      max-width: 1200px;
+      margin: 2rem auto;
+      height: 90vh;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .mac-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .mac-btn {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+    .red { background: #ff5f57; }
+    .yellow { background: #ffbd2f; }
+    .green { background: #28c840; }
+
+    .chat-container {
+      height: 500px;
+      overflow-y: auto;
+      padding: 16px;
+      background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .chat-message {
+      max-width: 75%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      margin-bottom: 12px;
+      word-wrap: break-word;
+    }
+    .chat-message.bot {
+      background: linear-gradient(135deg, #e6f0ff, #dbeafe);
+      margin-left: auto;
+    }
+    .chat-message.user {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      margin-right: auto;
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 18px;
+      background: #e6f0ff;
+      border-radius: 18px;
+      margin-left: auto;
+    }
+    .typing-indicator .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #60a5fa;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    .option-btn {
+      background: linear-gradient(135deg, #e0f2fe, #eff6ff);
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      outline: none;
+    }
+    .chat-input button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div id="macWindow" class="mac-window">
+  <div class="mac-header">
+    <span class="mac-btn red"></span>
+    <span class="mac-btn yellow"></span>
+    <span class="mac-btn green"></span>
+    <span class="ml-4 font-medium text-gray-600">
+      🤖 AI Counsellor {% if student %} - {{ student.name|default:'Student' }}{% endif %}
+    </span>
+  </div>
+
+  <main class="flex-1 p-8 overflow-y-auto">
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-message bot">
+        Hi there! I'm your AI Counsellor. What's on your mind today? 😊
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+      <button class="option-btn" data-option="I'm feeling stressed">😰 I'm feeling stressed</button>
+      <button class="option-btn" data-option="I'm struggling with assignments">📚 I'm struggling with assignments</button>
+      <button class="option-btn" data-option="I can't manage my time">⏰ I can't manage my time</button>
+      <button class="option-btn" data-option="I'm feeling unmotivated">😔 I'm feeling unmotivated</button>
+    </div>
+
+    <div class="chat-input mt-6">
+      <input type="text" id="messageInput" placeholder="Type your message here..." />
+      <button id="sendButton">➤</button>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const chatContainer = document.getElementById("chatContainer");
+  const messageInput = document.getElementById("messageInput");
+  const sendButton = document.getElementById("sendButton");
+  const optionButtons = document.querySelectorAll(".option-btn");
+
+  // Conversation history
+  let conversationHistory = [
+    { role: "system", content: "You are an empathetic AI counsellor for college students. Give supportive and actionable advice." },
+    { role: "assistant", content: "Hi there! I'm your AI Counsellor. What's on your mind today? 😊" }
+  ];
+
+  function addMessage(content, isUser = false) {
+    const msg = document.createElement("div");
+    msg.className = `chat-message ${isUser ? "user" : "bot"}`;
+    msg.textContent = content;
+    chatContainer.appendChild(msg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function showTyping() {
+    const div = document.createElement("div");
+    div.id = "typing";
+    div.className = "typing-indicator";
+    div.innerHTML = "<div class='dot'></div><div class='dot'></div><div class='dot'></div>";
+    chatContainer.appendChild(div);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function hideTyping() {
+    const div = document.getElementById("typing");
+    if (div) div.remove();
+  }
+
+  async function sendToBackend(userMessage) {
+    try {
+      const response = await fetch("{% url 'chatbot_api' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ message: userMessage, history: conversationHistory })
+      });
+      const data = await response.json();
+      return data.reply;
+    } catch (err) {
+      console.error("Backend error:", err);
+      return "⚠️ Sorry, I couldn't connect to the server. Please try again.";
+    }
+  }
+
+  async function handleMessage(userMessage) {
+    addMessage(userMessage, true);
+    messageInput.value = "";
+    showTyping();
+
+    const aiResponse = await sendToBackend(userMessage);
+
+    hideTyping();
+
+    conversationHistory.push({ role: "user", content: userMessage });
+    conversationHistory.push({ role: "assistant", content: aiResponse });
+    addMessage(aiResponse);
+  }
+
+  sendButton.addEventListener("click", () => {
+    const msg = messageInput.value.trim();
+    if (msg) handleMessage(msg);
+  });
+
+  messageInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const msg = messageInput.value.trim();
+      if (msg) handleMessage(msg);
+    }
+  });
+
+  optionButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const msg = btn.dataset.option;
+      handleMessage(msg);
+    });
+  });
+</script>
+{% endblock %}

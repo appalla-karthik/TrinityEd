@@ -1,3 +1,4 @@
+<!-- Updated performance.html -->
 {% extends "base.html" %}
 {% load static %}
 
@@ -141,37 +142,37 @@
       <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         <div class="card">
           <h3 class="font-semibold text-gray-700 mb-2">Average Score</h3>
-          <p class="stat-value text-blue-600">82%</p>
+          <p class="stat-value text-blue-600">{{ avg_score }}%</p>
           <div class="progress-container">
-            <div class="progress-bar progress-bar-blue" style="width:82%"></div>
+            <div class="progress-bar progress-bar-blue" style="width:{{ avg_score }}%"></div>
           </div>
         </div>
         <div class="card">
           <h3 class="font-semibold text-gray-700 mb-2">Top Student</h3>
-          <p class="stat-value text-green-600">Student B</p>
+          <p class="stat-value text-green-600">{{ top_student }}</p>
           <div class="progress-container">
-            <div class="progress-bar progress-bar-green" style="width:95%"></div>
+            <div class="progress-bar progress-bar-green" style="width:{{ top_score }}%"></div>
           </div>
         </div>
         <div class="card">
           <h3 class="font-semibold text-gray-700 mb-2">Needs Improvement</h3>
-          <p class="stat-value text-red-600">3 Students</p>
+          <p class="stat-value text-red-600">{{ needs_improvement }} Students</p>
           <div class="progress-container">
-            <div class="progress-bar progress-bar-red" style="width:40%"></div>
+            <div class="progress-bar progress-bar-red" style="width:{{ needs_improvement_percent }}%"></div>
           </div>
         </div>
         <div class="card">
           <h3 class="font-semibold text-gray-700 mb-2">Highest Score</h3>
-          <p class="stat-value text-blue-700">98%</p>
+          <p class="stat-value text-blue-700">{{ highest_score }}%</p>
           <div class="progress-container">
-            <div class="progress-bar progress-bar-blue" style="width:98%"></div>
+            <div class="progress-bar progress-bar-blue" style="width:{{ highest_score }}%"></div>
           </div>
         </div>
         <div class="card">
           <h3 class="font-semibold text-gray-700 mb-2">Lowest Score</h3>
-          <p class="stat-value text-red-700">45%</p>
+          <p class="stat-value text-red-700">{{ lowest_score }}%</p>
           <div class="progress-container">
-            <div class="progress-bar progress-bar-red" style="width:45%"></div>
+            <div class="progress-bar progress-bar-red" style="width:{{ lowest_score }}%"></div>
           </div>
         </div>
       </div>
@@ -286,10 +287,10 @@
   new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['Class 1','Class 2','Class 3','Class 4'],
+      labels:{{ chart_labels|safe }},
       datasets:[{
         label:'Average Score %',
-        data:[78,85,70,90],
+        data:{{ chart_data|safe }},
         backgroundColor:gradient,
         borderColor:'#2563eb',
         borderWidth:2,
@@ -324,7 +325,7 @@
     data:{
       labels:['Good','Average','Needs Improvement'],
       datasets:[{
-        data:[12,5,3],
+        data:{{ pie_data|safe }},
         backgroundColor:['#16a34a','#fbbf24','#dc2626'],
         hoverOffset:8
       }]

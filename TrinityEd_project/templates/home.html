@@ -169,7 +169,186 @@
     .intro-section {
       display: block;
     }
-    
+    @keyframes float {
+  0% { transform: translateY(0px) }
+  50% { transform: translateY(-20px) }
+  100% { transform: translateY(0px) }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp {
+  animation: fadeInUp 1.2s ease forwards;
+}
+/* how it works animation */
+/* Float background blobs */
+@keyframes float {
+  0% { transform: translateY(0px) }
+  50% { transform: translateY(-20px) }
+  100% { transform: translateY(0px) }
+}
+/* Fade In */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp { animation: fadeInUp 1.2s ease forwards; }
+
+/* Slide Animations */
+@keyframes slideFromLeft {
+  0% { opacity:0; transform: translateX(-50px); }
+  100% { opacity:1; transform: translateX(0); }
+}
+@keyframes slideFromRight {
+  0% { opacity:0; transform: translateX(50px); }
+  100% { opacity:1; transform: translateX(0); }
+}
+.from-left { animation: slideFromLeft 1.2s ease forwards; }
+.from-right { animation: slideFromRight 1.2s ease forwards; }
+
+/* Card Styling */
+.card-inner {
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  backdrop-filter: blur(20px);
+  transition: all 0.4s ease;
+}
+.group:hover .card-inner {
+  transform: translateY(-12px) scale(1.02) rotateX(2deg) rotateY(-2deg);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+/* Circle Number */
+.circle {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  color: white;
+  font-weight: bold;
+  font-size: 1.25rem;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(99,102,241,0.6);
+  transition: transform 0.4s ease;
+}
+.group:hover .circle {
+  transform: scale(1.15) rotate(10deg);
+}
+
+/* Text */
+.title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+.desc {
+  color: #374151;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+.group:hover .title { color: #3b82f6; }
+
+/* Mentors Section Wrapper */
+#mentors {
+  position: relative;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f0fdf4, #eff6ff);
+  border-radius: 2rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* Section Title */
+#mentors h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  background: linear-gradient(90deg, #10b981, #2563eb, #9333ea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  animation: fadeInDown 1s ease;
+}
+
+#mentors p {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 2rem auto;
+  font-size: 1.1rem;
+  color: #374151;
+  animation: fadeIn 1.2s ease;
+}
+
+/* Feature Cards */
+#mentors .space-y-3 > div {
+  position: relative;
+  background: rgba(255,255,255,0.9);
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  transition: all 0.4s ease;
+  transform: translateY(0);
+}
+
+/* Hover Effects */
+#mentors .space-y-3 > div:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  border-color: transparent;
+}
+
+/* Animated Dots */
+#mentors .space-y-3 > div > div:first-child {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* Title */
+#mentors h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s;
+}
+
+/* Hover title color change */
+#mentors .space-y-3 > div:hover h3 {
+  color: #2563eb;
+}
+
+/* Description */
+#mentors p.text-gray-600 {
+  font-size: 0.95rem;
+  line-height: 1.5rem;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+@keyframes fadeInDown {
+  from {opacity: 0; transform: translateY(-30px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
   </style>
 {% endblock %}
 
@@ -203,112 +382,172 @@
           <a href="/signup" class="auth-btn">Sign Up</a>
         </div>
       </header>
+<!-- Mission Section -->
+<section id="mission" class="relative mac-section content-section py-16 px-10 rounded-[2.5rem] 
+  shadow-2xl bg-gradient-to-br from-indigo-50/70 via-white/60 to-blue-100/70 
+  backdrop-blur-2xl border border-white/30 
+  overflow-hidden transform transition-all duration-700 hover:scale-[1.02]">
 
-      <!-- Mission Section -->
-      <section id="mission" class="mac-section content-section bg-gradient-to-r from-indigo-50 via-white to-blue-100 p-8 rounded-2xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 hover:scale-[1.01]">
-        <h2 class="section-title text-2xl font-bold mb-4">Our Mission</h2>
-        <p class="text-base text-gray-700 leading-relaxed mb-4">
-          TrinityEd is a simple, affordable tool that brings together student attendance, grades, and fee information to spot students who might be at risk of dropping out. We help teachers and mentors act early to support these students, turning data into helpful alerts that make a real difference in keeping kids in school.
-        </p>
-        <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-          <p class="text-blue-800 italic text-sm">"From scattered spreadsheets to actionable alerts: supporting students, mentors, and parents through early warning signals."</p>
-        </div>
-      </section>
+  <!-- Floating Gradient Orbs -->
+  <div class="absolute top-[-5rem] left-[-5rem] w-72 h-72 bg-gradient-to-r from-indigo-400 to-blue-400 
+    rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-[float_8s_infinite]"></div>
+  <div class="absolute bottom-[-5rem] right-[-5rem] w-80 h-80 bg-gradient-to-r from-blue-300 to-purple-400 
+    rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-[float_10s_infinite]"></div>
 
-      <!-- How It Works Section -->
-      <section id="how" class="mac-section content-section">
-        <h2 class="section-title text-2xl font-bold mb-4">How It Works</h2>
-        <p class="text-base text-gray-700 leading-relaxed mb-4">
-          TrinityEd makes it easy to keep track of students and help them succeed:
-        </p>
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">1. Gather Information</h3>
-            <p class="text-gray-600 text-sm">It pulls together data on attendance, grades, and fees from your existing records with simple uploads or connections.</p>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">2. Spot Issues Early</h3>
-            <p class="text-gray-600 text-sm">Smart analysis identifies patterns that might signal a student is struggling before it becomes a bigger problem.</p>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">3. Send Alerts</h3>
-            <p class="text-gray-600 text-sm">Notifications go out to mentors and parents through email or WhatsApp so they can step in quickly when needed.</p>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">4. Easy Dashboard</h3>
-            <p class="text-gray-600 text-sm">View clear charts and insights on a user-friendly screen that's simple to navigate and understand.</p>
-          </div>
-        </div>
-      </section>
+  <!-- Section Content -->
+  <div class="relative z-10 text-center max-w-4xl mx-auto animate-fadeInUp">
+    <h2 class="text-5xl font-extrabold mb-6 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 
+      bg-clip-text text-transparent drop-shadow-lg">
+      🌟 Our Mission
+    </h2>
 
-      <!-- For Mentors Section -->
-      <section id="mentors" class="mac-section content-section">
-        <h2 class="section-title text-2xl font-bold mb-4">For Mentors</h2>
-        <p class="text-base text-gray-700 leading-relaxed mb-4">
-          TrinityEd helps mentors support students better with tools designed for real classroom needs:
-        </p>
-        <div class="space-y-3">
-          <div class="flex items-start gap-3 bg-green-50 p-3 rounded-lg border border-green-200">
-            <div class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-1 text-lg">Early Alerts</h3>
-              <p class="text-gray-600 text-sm">Get notifications about students who need help based on their attendance, grades, and fees, so you can act before it's too late.</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-1 text-lg">Clear Insights</h3>
-              <p class="text-gray-600 text-sm">Understand why a student might be at risk with straightforward explanations that build trust in the system.</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-purple-50 p-3 rounded-lg border border-purple-200">
-            <div class="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 flex-shrink-0"></div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-1 text-lg">Easy to Learn</h3>
-              <p class="text-gray-600 text-sm">The simple design means you can start using it right away without much training or technical knowledge.</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-orange-50 p-3 rounded-lg border border-orange-200">
-            <div class="w-1.5 h-1.5 bg-orange-500 rounded-full mt-1.5 flex-shrink-0"></div>
-            <div>
-              <h3 class="font-semibold text-gray-900 mb-1 text-lg">Focused Notifications</h3>
-              <p class="text-gray-600 text-sm">Only get alerts for the most important issues to avoid overload and keep your focus on what matters.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <p class="text-lg text-gray-700 leading-relaxed mb-8 px-4">
+      <span class="bg-gradient-to-r from-indigo-500 to-blue-600 bg-clip-text text-transparent font-semibold">
+        TrinityEd
+      </span> is your partner in education — transforming scattered attendance, grades, 
+      and fee data into powerful early-warning signals. We empower teachers and mentors 
+      to act early, ensuring every student stays on track and thrives in school.
+    </p>
 
-      <!-- For Students Section -->
-      <section id="students" class="mac-section content-section">
-        <h2 class="section-title text-2xl font-bold mb-4">For Students</h2>
-        <p class="text-base text-gray-700 leading-relaxed mb-4">
-          TrinityEd makes sure students get the help they need to stay on track and succeed:
-        </p>
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="bg-gradient-to-br from-pink-50 to-purple-50 p-4 rounded-lg border border-pink-200 text-center">
-            <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span class="text-white font-bold text-xs">🎓</span>
-            </div>
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">Quick Support</h3>
-            <p class="text-gray-600 text-sm">Teachers and mentors can spot problems early and offer guidance before things get tough, helping you succeed.</p>
-          </div>
-          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 text-center">
-            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span class="text-white font-bold text-xs">💬</span>
-            </div>
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">Better Communication</h3>
-            <p class="text-gray-600 text-sm">Keeps everyone informed so you receive timely advice, resources, and support when you need it most.</p>
-          </div>
-          <div class="bg-gradient-to-br from-green-50 to-teal-50 p-4 rounded-lg border border-green-200 text-center">
-            <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span class="text-white font-bold text-xs">🚀</span>
-            </div>
-            <h3 class="font-semibold text-gray-900 mb-2 text-lg">Path to Success</h3>
-            <p class="text-gray-600 text-sm">Helps prevent dropouts by addressing issues like low attendance or grades right away, keeping you on track.</p>
-          </div>
+    <!-- Glowing Quote Box -->
+    <div class="relative group max-w-2xl mx-auto">
+      <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500 
+        blur-lg opacity-50 group-hover:opacity-80 transition duration-500"></div>
+      <div class="relative bg-white/80 rounded-2xl border border-white/30 p-6 shadow-xl 
+        backdrop-blur-xl hover:shadow-2xl transition">
+        <div class="flex items-start gap-3">
+          <svg class="w-8 h-8 text-indigo-600 mt-1 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 11.75C9 13.55 7.55 15 5.75 15S2.5 13.55 2.5 11.75 3.95 8.5 5.75 8.5h.25v-2H5.5A3.75 3.75 0 0 0 1.75 10.25v1.5C1.75 15.2 4.8 18.25 8.5 18.25c3.7 0 6.75-3.05 6.75-6.75v-1.5c0-1.52-1.23-2.75-2.75-2.75h-1v2h1c.41 0 .75.34.75.75v1.5c0 2.49-2.01 4.5-4.5 4.5z"/>
+          </svg>
+          <p class="text-indigo-900 italic text-lg leading-relaxed">
+            "From scattered spreadsheets to actionable alerts: supporting students, mentors, 
+            and parents through early warning signals."
+          </p>
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how" class="relative mac-section content-section py-20 px-8 rounded-[2.5rem] 
+  bg-gradient-to-br from-indigo-50/80 via-white/70 to-blue-100/80 
+  backdrop-blur-xl shadow-2xl border border-white/40 overflow-hidden">
+
+  <!-- Floating Background Blobs -->
+  <div class="absolute -top-16 -left-16 w-64 h-64 bg-indigo-300 rounded-full mix-blend-multiply 
+    filter blur-3xl opacity-30 animate-[float_10s_infinite]"></div>
+  <div class="absolute -bottom-20 -right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply 
+    filter blur-3xl opacity-30 animate-[float_12s_infinite]"></div>
+
+  <!-- Section Title -->
+  <div class="relative z-10 text-center mb-12 animate-fadeInUp">
+    <h2 class="text-5xl font-extrabold mb-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 
+      bg-clip-text text-transparent drop-shadow-lg">
+      🚀 How It Works
+    </h2>
+    <p class="text-lg text-gray-700 max-w-2xl mx-auto">
+      TrinityEd makes it easy to keep track of students and help them succeed:
+    </p>
+  </div>
+
+  <!-- Steps Grid -->
+  <div class="relative z-10 grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+    
+    <!-- Step 1 -->
+    <div class="group card-animate from-left">
+      <div class="card-inner">
+        <div class="circle">1</div>
+        <h3 class="title">Gather Information</h3>
+        <p class="desc">Pulls together data on attendance, grades, and fees from your existing records with simple uploads or connections.</p>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="group card-animate from-right">
+      <div class="card-inner">
+        <div class="circle">2</div>
+        <h3 class="title">Spot Issues Early</h3>
+        <p class="desc">Smart analysis identifies patterns that might signal a student is struggling before it becomes a bigger problem.</p>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="group card-animate from-left">
+      <div class="card-inner">
+        <div class="circle">3</div>
+        <h3 class="title">Send Alerts</h3>
+        <p class="desc">Notifications go out to mentors and parents through email or WhatsApp so they can step in quickly when needed.</p>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="group card-animate from-right">
+      <div class="card-inner">
+        <div class="circle">4</div>
+        <h3 class="title">Easy Dashboard</h3>
+        <p class="desc">View clear charts and insights on a user-friendly screen that's simple to navigate and understand.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+      <!-- For Mentors Section --> 
+      <section id="mentors" class="mac-section content-section"> 
+        <h2 class="section-title text-2xl font-bold mb-4">For Mentors</h2> 
+        <p class="text-base text-gray-700 leading-relaxed mb-4"> TrinityEd helps mentors support students better with tools designed for real classroom needs: </p> 
+        <div class="space-y-3"> 
+          <div class="flex items-start gap-3 bg-green-50 p-3 rounded-lg border border-green-200"> 
+            <div class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></div> <div> <h3 class="font-semibold text-gray-900 mb-1 text-lg">Early Alerts</h3> <p class="text-gray-600 text-sm">Get notifications about students who need help based on their attendance, grades, and fees, so you can act before it's too late.</p> </div> </div> <div class="flex items-start gap-3 bg-blue-50 p-3 rounded-lg border border-blue-200"> <div class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div> <div> <h3 class="font-semibold text-gray-900 mb-1 text-lg">Clear Insights</h3> <p class="text-gray-600 text-sm">Understand why a student might be at risk with straightforward explanations that build trust in the system.</p> </div> </div> <div class="flex items-start gap-3 bg-purple-50 p-3 rounded-lg border border-purple-200"> <div class="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 flex-shrink-0"></div> <div> <h3 class="font-semibold text-gray-900 mb-1 text-lg">Easy to Learn</h3> <p class="text-gray-600 text-sm">The simple design means you can start using it right away without much training or technical knowledge.</p> </div> </div> <div class="flex items-start gap-3 bg-orange-50 p-3 rounded-lg border border-orange-200"> <div class="w-1.5 h-1.5 bg-orange-500 rounded-full mt-1.5 flex-shrink-0"></div> <div> <h3 class="font-semibold text-gray-900 mb-1 text-lg">Focused Notifications</h3> <p class="text-gray-600 text-sm">Only get alerts for the most important issues to avoid overload and keep your focus on what matters.</p> </div> </div> </div> </section>
+
+     <!-- For Students Section -->
+<section id="students" class="mac-section content-section mt-10">
+  <h2 class="section-title text-2xl font-bold mb-4">For Students</h2>
+  <p class="text-base text-gray-700 leading-relaxed mb-6">
+    TrinityEd makes sure students get the help they need to stay on track and succeed:
+  </p>
+
+  <div class="space-y-4">
+    <!-- Quick Support -->
+    <div class="flex items-start gap-3 bg-pink-50 p-4 rounded-lg border border-pink-200">
+      <div class="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1.5 flex-shrink-0">
+        🎓
+      </div>
+      <div>
+        <h3 class="font-semibold text-gray-900 mb-1 text-lg">Quick Support</h3>
+        <p class="text-gray-600 text-sm">
+          Teachers and mentors can spot problems early and offer guidance before things get tough, helping you succeed.
+        </p>
+      </div>
+    </div>
+
+    <!-- Better Communication -->
+    <div class="flex items-start gap-3 bg-blue-50 p-4 rounded-lg border border-blue-200">
+      <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1.5 flex-shrink-0">
+        💬
+      </div>
+      <div>
+        <h3 class="font-semibold text-gray-900 mb-1 text-lg">Better Communication</h3>
+        <p class="text-gray-600 text-sm">
+          Keeps everyone informed so you receive timely advice, resources, and support when you need it most.
+        </p>
+      </div>
+    </div>
+
+    <!-- Path to Success -->
+    <div class="flex items-start gap-3 bg-green-50 p-4 rounded-lg border border-green-200">
+      <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1.5 flex-shrink-0">
+        🚀
+      </div>
+      <div>
+        <h3 class="font-semibold text-gray-900 mb-1 text-lg">Path to Success</h3>
+        <p class="text-gray-600 text-sm">
+          Helps prevent dropouts by addressing issues like low attendance or grades right away, keeping you on track.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
     </div>
   </div>
 {% endblock %}

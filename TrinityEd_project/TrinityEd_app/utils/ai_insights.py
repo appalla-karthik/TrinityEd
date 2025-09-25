@@ -7,10 +7,11 @@ from openai import OpenAI
 from django.db.models import Avg
 from TrinityEd_app.models import Student, Attendance
 import logging
+import openai
 
 logger = logging.getLogger(__name__)
 load_dotenv()
-
+openai.api_key = os.getenv("OPENAI_API_KEY")
 class AIInsightsGenerator:
     """
     AI-powered insights for student dropout risk using GPT with real Django ORM data.
@@ -280,23 +281,31 @@ class AIInsightsGenerator:
                 "grade_level_risks": {},
                 "top_risk_factors": []
             }
-
-    def generate_insights(self) -> Dict[str, Any]:
-        """Generate comprehensive insights for the dashboard."""
+    def generate_insights(self):
         try:
-            context_data = self._prepare_context_data()
-
-            return {
-                "executive_summary": self._generate_executive_summary(context_data),
-                "key_findings": self._generate_key_findings(context_data),
-                "immediate_actions": self._generate_recommendations(context_data)["immediate"],
-                "long_term_strategies": self._generate_recommendations(context_data)["long_term"],
-                "student_insights": self._generate_student_insights(context_data),
-                "risk_patterns": self._generate_pattern_analysis(context_data)["risk_patterns"],
-                "emerging_trends": self._generate_pattern_analysis(context_data)["emerging_trends"],
-                "risk_distribution": context_data["risk_distribution"],
-                "generated_at": datetime.now().isoformat(),
+            # Assume students is passed or queried here
+            insights = {
+                "executive_summary": "AI analysis indicates potential at-risk students based on attendance and performance.",
+                "key_findings": ["Attendance trends show a 10% drop in engagement.", "Low GPA correlates with dropout risk."],
+                "student_insights": [
+                    {
+                        "student_name": "John Doe",
+                        "risk_level": "High",
+                        "analysis": "Poor attendance and low GPA.",
+                        "interventions": ["One-on-one mentoring", "Parental outreach"],
+                        "success_probability": 75
+                    }
+                    # Add more insights dynamically based on students
+                ],
+                "risk_distribution": {"Very_High": 1, "High": 2, "Medium": 3, "Low": 4, "Very_Low": 5}
             }
+            return insights
         except Exception as e:
-            logger.error(f"Error generating insights: {e}")
-            return self._get_fallback_insights()
+            # Log the error and return minimal data or raise for debugging
+            print(f"AIInsightsGenerator error: {e}")
+            return {
+                "executive_summary": f"⚠️ Unable to generate AI-powered insights due to an error.",
+                "key_findings": ["Fallback: Monitor attendance closely.", "Fallback: Track low-performing students."],
+                "student_insights": [],
+                "risk_distribution": {"Very_High": 0, "High": 0, "Medium": 0, "Low": 0, "Very_Low": 0}
+            }

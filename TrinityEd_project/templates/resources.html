@@ -96,7 +96,6 @@
     <main id="macContent" class="flex-1 p-8 overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">📚 Resources</h1>
-        <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl shadow-md hover:scale-105 transition">Export CSV</button>
       </div>
 
       <!-- Filter + Search -->
@@ -145,21 +144,21 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr data-category="Math">
               <td class="px-6 py-4">1</td>
               <td class="px-6 py-4 font-medium text-gray-700">Math Notes</td>
               <td class="px-6 py-4">Math</td>
               <td class="px-6 py-4">Algebra & Geometry revision notes.</td>
               <td class="px-6 py-4"><a href="#" class="download-btn">Download</a></td>
             </tr>
-            <tr>
+            <tr data-category="Science">
               <td class="px-6 py-4">2</td>
               <td class="px-6 py-4 font-medium text-gray-700">Science Guide</td>
               <td class="px-6 py-4">Science</td>
               <td class="px-6 py-4">Lab report writing template.</td>
               <td class="px-6 py-4"><a href="#" class="download-btn">Download</a></td>
             </tr>
-            <tr>
+            <tr data-category="History">
               <td class="px-6 py-4">3</td>
               <td class="px-6 py-4 font-medium text-gray-700">History Timeline</td>
               <td class="px-6 py-4">History</td>
@@ -178,32 +177,38 @@
     const btnClose = document.getElementById("btnClose");
     const btnMinimize = document.getElementById("btnMinimize");
     const btnMaximize = document.getElementById("btnMaximize");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const searchInput = document.getElementById("searchInput");
+    const resourceCards = document.getElementById("resourceCards");
+    const resourcesTable = document.getElementById("resourcesTable");
 
     let isMaximized = false;
     let isMinimized = false;
 
+    // Window controls
     btnClose.addEventListener("click", () => {
       macWindow.style.display = "none";
     });
 
-    btnMinimize.addEventListener("click",()=>{
-    if(!isMinimized && !isMaximized){
-      macContent.style.display="none";
-      macWindow.style.position="static";
-      macWindow.style.width="90%";
-      macWindow.style.height="auto";
-      macWindow.style.margin="2rem auto";
-      macWindow.style.borderRadius="14px";
-    } else if(isMinimized){
-      macContent.style.display="block";
-      macWindow.style.position="static";
-      macWindow.style.width="90%";
-      macWindow.style.height="90vh";
-      macWindow.style.margin="2rem auto";
-      macWindow.style.borderRadius="14px";
-    }
-    isMinimized=!isMinimized;
-  });
+    btnMinimize.addEventListener("click", () => {
+      if (!isMinimized && !isMaximized) {
+        macContent.style.display = "none";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "auto";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      } else if (isMinimized) {
+        macContent.style.display = "block";
+        macWindow.style.position = "static";
+        macWindow.style.width = "90%";
+        macWindow.style.height = "90vh";
+        macWindow.style.margin = "2rem auto";
+        macWindow.style.borderRadius = "14px";
+      }
+      isMinimized = !isMinimized;
+    });
+
     btnMaximize.addEventListener("click", () => {
       if (!isMaximized) {
         macWindow.style.position = "fixed";
@@ -224,38 +229,36 @@
       if (isMaximized) isMinimized = false;
     });
 
-    // Export CSV
-    document.getElementById('exportBtn').addEventListener('click', function () {
-      let table = document.getElementById('resourcesTable');
-      let rows = Array.from(table.querySelectorAll('tr'));
-      let csvContent = rows.map(row => {
-        let cols = Array.from(row.querySelectorAll('th, td'));
-        return cols.map(col => col.innerText.replace(/,/g, "")).join(",");
-      }).join("\n");
-      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      let link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', 'resources.csv');
-      link.click();
-    });
+    // Filter and search function
+    function filterResources() {
+      const category = categoryFilter.value.toLowerCase();
+      const searchTerm = searchInput.value.toLowerCase().trim();
 
-    // Filter by category
-    document.getElementById('categoryFilter').addEventListener('change', function () {
-      const filter = this.value.toLowerCase();
+      // Filter cards
       document.querySelectorAll('#resourceCards .card').forEach(card => {
-        const cat = card.getAttribute('data-category').toLowerCase();
-        card.style.display = (filter === 'all' || filter === cat) ? '' : 'none';
+        const cardCategory = card.getAttribute('data-category').toLowerCase();
+        const cardText = card.innerText.toLowerCase();
+        const matchesCategory = category === 'all' || cardCategory === category;
+        const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+        card.style.display = matchesCategory && matchesSearch ? '' : 'none';
       });
-    });
 
-    // Search resources
-    document.getElementById('searchInput').addEventListener('input', function () {
-      const term = this.value.toLowerCase();
-      document.querySelectorAll('#resourceCards .card').forEach(card => {
-        const text = card.innerText.toLowerCase();
-        card.style.display = text.includes(term) ? '' : 'none';
+      // Filter table rows
+      document.querySelectorAll('#resourcesTable tbody tr').forEach(row => {
+        const rowCategory = row.getAttribute('data-category').toLowerCase();
+        const rowText = row.innerText.toLowerCase();
+        const matchesCategory = category === 'all' || rowCategory === category;
+        const matchesSearch = !searchTerm || rowText.includes(searchTerm);
+        row.style.display = matchesCategory && matchesSearch ? '' : 'none';
       });
-    });
+    }
+
+    // Event listeners
+    categoryFilter.addEventListener('change', filterResources);
+    searchInput.addEventListener('input', filterResources);
+
+    // Initial filter application
+    filterResources();
   </script>
 </body>
 </html>

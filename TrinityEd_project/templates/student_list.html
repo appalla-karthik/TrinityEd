@@ -1,99 +1,140 @@
 {% extends "base.html" %}
 {% load static %}
+
+{% block title %}Students List | TrinityEd{% endblock %}
+
 {% block content %}
-<div class="bg-cover bg-center bg-fixed py-12 px-6" 
-     style="background-image: url('{% static "images/bg.jpg" %}');">
-    <div class="max-w-6xl mx-auto">
-        <!-- Page Title -->
-        <h1 class="text-4xl font-extrabold mb-10 text-center drop-shadow-sm">
-            <span class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
-                         bg-clip-text text-transparent animate-gradient">
-                🎓 Students Directory
-            </span>
-        </h1>
-
-        {% if students %}
-        <!-- Table Card -->
-        <div class="overflow-x-auto rounded-2xl shadow-2xl border border-gray-200 
-                    bg-white/70 backdrop-blur-2xl transition duration-500 
-                    hover:shadow-purple-300">
-            <table class="min-w-full text-sm text-left">
-                <!-- Table Head -->
-                <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-                    <tr>
-                        <th class="px-6 py-4 text-lg font-semibold tracking-wide">👤 Name</th>
-                        <th class="px-6 py-4 text-lg font-semibold tracking-wide">🎟 Enrollment No.</th>
-                        <th class="px-6 py-4 text-lg font-semibold tracking-wide">📧 Email</th>
-                    </tr>
-                </thead>
-
-                <!-- Table Body -->
-              <tbody class="divide-y divide-gray-100">
-    {% for student in students %}
-    <tr onclick="window.location.href='{% url 'mentor_dashboard' student.id %}'" 
-    class="cursor-pointer group transition duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-pink-50 hover:scale-[1.01]">
-
-
-        <!-- Name -->
-        <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
-            <div class="w-11 h-11 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 
-                        text-white flex items-center justify-center font-bold shadow-md 
-                        group-hover:scale-110 transition duration-300">
-                {{ student.user.username|first|upper }}
-            </div>
-            <span class="text-gray-800 text-base group-hover:text-indigo-600 transition">
-                {{ student.user.username }}
-            </span>
-        </td>
-
-        <!-- Enrollment -->
-        <td class="px-6 py-4">
-            {% if student.user.enrollment_no %}
-                <span class="bg-green-100 text-green-800 px-4 py-1.5 rounded-full 
-                             text-sm font-semibold shadow-sm transition 
-                             group-hover:shadow-md group-hover:scale-105 inline-block">
-                    {{ student.user.enrollment_no }}
-                </span>
-            {% else %}
-                <span class="bg-red-100 text-red-800 px-4 py-1.5 rounded-full 
-                             text-sm font-semibold shadow-sm transition 
-                             group-hover:shadow-md group-hover:scale-105 inline-block">
-                    Not Enrolled
-                </span>
-            {% endif %}
-        </td>
-
-        <!-- Email -->
-        <td class="px-6 py-4 text-gray-700 group-hover:text-purple-600 transition">
-            <a href="mailto:{{ student.user.email }}" class="hover:underline" onclick="event.stopPropagation();">
-                {{ student.user.email }}
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
-
-            </table>
-        </div>
-        {% else %}
-        <!-- Empty State -->
-        <div class="text-center py-20">
-            <p class="text-gray-500 text-xl animate-bounce">🚫 No students found</p>
-        </div>
-        {% endif %}
+<div id="macWindow" class="mac-window">
+  <div class="mac-header">
+    <div class="flex items-center">
+      <span id="btnClose" class="mac-btn red"></span>
+      <span id="btnMinimize" class="mac-btn yellow"></span>
+      <span id="btnMaximize" class="mac-btn green"></span>
+      <span class="ml-4 font-medium text-gray-600">Students List</span>
     </div>
-</div>
+  </div>
 
-<!-- Gradient Animation -->
-<style>
-@keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 6s ease infinite;
-}
-</style>
+  <main id="macContent" class="flex-1 p-8 overflow-y-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Students List</h1>
+    {% if students %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-blue-600 text-white">
+          <tr>
+            <th class="px-6 py-3 text-left">Initial</th>
+            <th class="px-6 py-3 text-left">Name</th>
+            <th class="px-6 py-3 text-left">Enrollment Number</th>
+            <th class="px-6 py-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for student in students %}
+          <tr class="group hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+              <div class="w-11 h-11 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 
+                          text-white flex items-center justify-center font-bold shadow-md 
+                          group-hover:scale-110 transition duration-300">
+                {% if student.user and student.user.username %}
+                  {{ student.user.username|first|upper }}
+                {% else %}
+                  {{ student.name|first|upper|default:'N/A' }}
+                {% endif %}
+              </div>
+            </td>
+            <td class="px-6 py-4 font-medium text-gray-900">
+              <span class="text-gray-800 text-base group-hover:text-indigo-600 transition">
+                {{ student.user.username|default:student.name|default:'Unknown' }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              {% if student.user and student.user.enrollment_no %}
+                <span class="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-medium">
+                  {{ student.user.enrollment_no }}
+                </span>
+              {% else %}
+                <span class="bg-red-100 text-red-800 px-4 py-1.5 rounded-full text-sm font-medium">
+                  Not Enrolled
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <a href="{% url 'student' student_id=student.id %}" class="text-blue-600 hover:underline">
+                View Dashboard
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+              No students found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No students found.</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const macWindow = document.getElementById("macWindow");
+  const macContent = document.getElementById("macContent");
+  const btnClose = document.getElementById("btnClose");
+  const btnMinimize = document.getElementById("btnMinimize");
+  const btnMaximize = document.getElementById("btnMaximize");
+
+  let isMaximized = false;
+  let isMinimized = false;
+
+  btnClose.addEventListener("click", () => {
+    macWindow.style.display = "none";
+  });
+
+  btnMinimize.addEventListener("click", () => {
+    if (!isMinimized && !isMaximized) {
+      macContent.style.display = "none";
+      macWindow.style.height = "60px";
+      macWindow.style.margin = "2rem auto";
+    } else if (isMinimized) {
+      macContent.style.display = "block";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+    }
+    isMinimized = !isMinimized;
+    if (isMinimized) isMaximized = false;
+  });
+
+  btnMaximize.addEventListener("click", () => {
+    if (!isMaximized) {
+      macWindow.style.position = "fixed";
+      macWindow.style.top = "0";
+      macWindow.style.left = "0";
+      macWindow.style.width = "100%";
+      macWindow.style.height = "100vh";
+      macWindow.style.margin = "0";
+      macWindow.style.borderRadius = "0";
+      macContent.style.display = "block";
+    } else {
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
+      macContent.style.display = "block";
+    }
+    isMaximized = !isMaximized;
+    if (isMaximized) isMinimized = false;
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    macWindow.classList.remove("hidden");
+  });
+</script>
 {% endblock %}

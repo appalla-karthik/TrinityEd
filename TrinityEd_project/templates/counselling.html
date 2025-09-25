@@ -35,7 +35,7 @@
 
     /* macOS window styling */
     .mac-window {
-       width: 90%;
+      width: 90%;
       margin: 2rem auto;
       height: 90vh;
       background: rgba(255, 255, 255, 0.95);
@@ -69,6 +69,10 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .success-message { color: #10b981; font-size: 0.875rem; margin-top: 0.25rem; }
+    .error-message { color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; }
+    .cancel-btn { background-color: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+    .cancel-btn:hover { background-color: #dc2626; }
   </style>
 {% endblock %}
 
@@ -84,6 +88,15 @@
 
   <!-- Main content -->
   <main id="macContent" class="flex-1 p-8 overflow-y-auto animate-fadeIn">
+    <!-- Messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 p-3 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
       <!-- Progress Overview -->
@@ -126,14 +139,17 @@
       <div class="card">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Upcoming Sessions</h3>
         <ul class="space-y-3">
-          <li class="p-3 bg-blue-50 rounded-lg flex justify-between">
-            <span>📘 Academic Guidance - Dr. Smith</span> 
-            <span class="text-sm text-gray-500">Sep 18, 5:00 PM</span>
-          </li>
-          <li class="p-3 bg-blue-50 rounded-lg flex justify-between">
-            <span>🧠 Stress Management - Ms. Patel</span> 
-            <span class="text-sm text-gray-500">Sep 20, 4:00 PM</span>
-          </li>
+          {% for session in student.sessions.all %}
+            <li class="p-3 bg-blue-50 rounded-lg flex justify-between items-center">
+              <span>{{ session.description|default:'No description' }} - {{ session.mentor.username|default:'Unassigned' }}</span>
+              <span class="text-sm text-gray-500">{{ session.scheduled_time|date:"M d, H:i" }}</span>
+              {% if session.status == 'pending' or session.status == 'confirmed' %}
+                <span class="cancel-btn" data-session-id="{{ session.id }}">Cancel</span>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li class="p-3 text-gray-500">No upcoming sessions.</li>
+          {% endfor %}
         </ul>
       </div>
 
@@ -153,16 +169,29 @@
       <!-- Book Slot -->
       <div class="card col-span-1 lg:col-span-2">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Book a Session</h3>
-        <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" placeholder="Your Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          <input type="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          <select class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>Choose Mentor</option>
-            <option>Dr. Smith</option>
-            <option>Ms. Patel</option>
-          </select>
-          <input type="datetime-local" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition col-span-1 md:col-span-2">Book</button>
+        <form method="POST" action="{% url 'counselling' %}" class="grid grid-cols-1 md:grid-cols-2 gap-4" id="counsellingForm">
+          {% csrf_token %}
+          <div>
+            <input type="text" name="name" placeholder="Your Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+            <p class="error-message" id="name-error"></p>
+          </div>
+          <div>
+            <input type="email" name="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+            <p class="error-message" id="email-error"></p>
+          </div>
+          <div>
+            <select name="mentor" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="">Choose Mentor</option>
+              <option value="1">Dr. Smith</option>
+              <option value="2">Ms. Patel</option>
+            </select>
+            <p class="error-message" id="mentor-error"></p>
+          </div>
+          <div>
+            <input type="datetime-local" name="scheduled_time" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+            <p class="error-message" id="time-error"></p>
+          </div>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition col-span-1 md:col-span-2">Book Session</button>
         </form>
       </div>
 
@@ -173,69 +202,152 @@
 
 {% block extra_js %}
 <script>
-  const macWindow=document.getElementById("macWindow"),
-        macContent=document.getElementById("macContent"),
-        btnClose=document.getElementById("btnClose"),
-        btnMinimize=document.getElementById("btnMinimize"),
-        btnMaximize=document.getElementById("btnMaximize");
+  const macWindow = document.getElementById("macWindow"),
+        macContent = document.getElementById("macContent"),
+        btnClose = document.getElementById("btnClose"),
+        btnMinimize = document.getElementById("btnMinimize"),
+        btnMaximize = document.getElementById("btnMaximize"),
+        counsellingForm = document.getElementById("counsellingForm");
 
-  let isMaximized=false, isMinimized=false;
+  let isMaximized = false, isMinimized = false;
 
-  btnClose.addEventListener("click",()=>macWindow.style.display="none");
+  btnClose.addEventListener("click", () => macWindow.style.display = "none");
 
-  btnMinimize.addEventListener("click",()=>{
-    if(!isMinimized && !isMaximized){
-      macContent.style.display="none";
-      macWindow.style.position="static";
-      macWindow.style.width="90%";
-      macWindow.style.height="auto";
-      macWindow.style.margin="2rem auto";
-      macWindow.style.borderRadius="14px";
-    } else if(isMinimized){
-      macContent.style.display="block";
-      macWindow.style.position="static";
-      macWindow.style.width="90%";
-      macWindow.style.height="90vh";
-      macWindow.style.margin="2rem auto";
-      macWindow.style.borderRadius="14px";
+  btnMinimize.addEventListener("click", () => {
+    if (!isMinimized && !isMaximized) {
+      macContent.style.display = "none";
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "auto";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
+    } else if (isMinimized) {
+      macContent.style.display = "block";
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
     }
-    isMinimized=!isMinimized;
+    isMinimized = !isMinimized;
   });
 
-  btnMaximize.addEventListener("click",()=>{
-    if(!isMaximized){
-      macWindow.style.position="fixed";
-      macWindow.style.top="0";
-      macWindow.style.left="0";
-      macWindow.style.width="100%";
-      macWindow.style.height="100vh";
-      macWindow.style.margin="0";
-      macWindow.style.borderRadius="0";
+  btnMaximize.addEventListener("click", () => {
+    if (!isMaximized) {
+      macWindow.style.position = "fixed";
+      macWindow.style.top = "0";
+      macWindow.style.left = "0";
+      macWindow.style.width = "100%";
+      macWindow.style.height = "100vh";
+      macWindow.style.margin = "0";
+      macWindow.style.borderRadius = "0";
     } else {
-      macWindow.style.position="static";
-      macWindow.style.width="90%";
-      macWindow.style.height="90vh";
-      macWindow.style.margin="2rem auto";
-      macWindow.style.borderRadius="14px";
+      macWindow.style.position = "static";
+      macWindow.style.width = "90%";
+      macWindow.style.height = "90vh";
+      macWindow.style.margin = "2rem auto";
+      macWindow.style.borderRadius = "14px";
     }
-    macContent.style.display="block";
-    isMaximized=!isMaximized;
-    if(isMaximized) isMinimized=false;
+    macContent.style.display = "block";
+    isMaximized = !isMaximized;
+    if (isMaximized) isMinimized = false;
+  });
+
+  // Real-time form validation
+  const nameInput = counsellingForm.querySelector('input[name="name"]');
+  const emailInput = counsellingForm.querySelector('input[name="email"]');
+  const mentorSelect = counsellingForm.querySelector('select[name="mentor"]');
+  const timeInput = counsellingForm.querySelector('input[name="scheduled_time"]');
+  const errorElements = {
+    name: document.getElementById('name-error'),
+    email: document.getElementById('email-error'),
+    mentor: document.getElementById('mentor-error'),
+    time: document.getElementById('time-error')
+  };
+
+  function validateForm() {
+    let isValid = true;
+    if (!nameInput.value.trim()) {
+      errorElements.name.textContent = "Name is required.";
+      isValid = false;
+    } else {
+      errorElements.name.textContent = "";
+    }
+    if (!emailInput.value.trim() || !emailInput.value.includes('@')) {
+      errorElements.email.textContent = "Valid email is required.";
+      isValid = false;
+    } else {
+      errorElements.email.textContent = "";
+    }
+    if (!mentorSelect.value) {
+      errorElements.mentor.textContent = "Please select a mentor.";
+      isValid = false;
+    } else {
+      errorElements.mentor.textContent = "";
+    }
+    if (!timeInput.value || new Date(timeInput.value) <= new Date()) {
+      errorElements.time.textContent = "Please select a future time.";
+      isValid = false;
+    } else {
+      errorElements.time.textContent = "";
+    }
+    return isValid;
+  }
+
+  counsellingForm.addEventListener('submit', (e) => {
+    if (!validateForm()) {
+      e.preventDefault();
+      alert("Please fix the errors before submitting.");
+    } else if (!confirm("Are you sure you want to book this session?")) {
+      e.preventDefault();
+    }
+  });
+
+  [nameInput, emailInput, mentorSelect, timeInput].forEach(input => {
+    input.addEventListener('input', validateForm);
+  });
+
+  // Cancel session functionality
+  document.querySelectorAll('.cancel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm("Are you sure you want to cancel this session?")) {
+        fetch(`/cancel-session/${btn.dataset.sessionId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            btn.parentElement.remove();
+            alert("Session cancelled successfully.");
+          } else {
+            alert("Failed to cancel session.");
+          }
+        })
+        .catch(error => {
+          alert("An error occurred while cancelling the session.");
+          console.error('Error:', error);
+        });
+      }
+    });
   });
 
   // Chart.js progress chart
-  const ctx=document.getElementById('progressChart').getContext('2d');
-  new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:["Aug","Sep","Oct","Nov"],
-      datasets:[
-        { label:"Attendance %", data:[85,80,78,82], borderColor:"#3b82f6", fill:false, tension:0.4 },
-        { label:"Assignments %", data:[75,72,65,70], borderColor:"#10b981", fill:false, tension:0.4 },
-        { label:"Stress Score", data:[50,60,70,65], borderColor:"#f59e0b", fill:false, tension:0.4 }
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ["Aug", "Sep", "Oct", "Nov"],
+      datasets: [
+        { label: "Attendance %", data: [85, 80, 78, 82], borderColor: "#3b82f6", fill: false, tension: 0.4 },
+        { label: "Assignments %", data: [75, 72, 65, 70], borderColor: "#10b981", fill: false, tension: 0.4 },
+        { label: "Stress Score", data: [50, 60, 70, 65], borderColor: "#f59e0b", fill: false, tension: 0.4 }
       ]
     },
-    options:{ responsive:true, plugins:{ legend:{ position:"bottom" } } }
+    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
   });
 </script>
 {% endblock %}

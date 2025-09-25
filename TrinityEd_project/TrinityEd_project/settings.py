@@ -14,6 +14,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -23,6 +24,56 @@ INSTALLED_APPS = [
     'TrinityEd_app',
     'accounts'
 ]
+
+JAZZMIN_SETTINGS = {
+    # Basic info
+    "site_title": "TrinityEd Dashboard",
+    "site_header": "TrinityEd Admin",
+    "site_brand": "TrinityEd",
+    "welcome_sign": "Empowering Student Success!",
+    "copyright": "TrinityEd © 2025",
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": ["auth", "TrinityEd_app", "accounts"],
+    "topmenu_links": [
+        {"name": "Home",  "url": "home", "permissions": ["auth.view_user"]},
+        {"name": "Documentation", "url": "https://trinityed.com/docs/", "new_window": True},
+    ],
+
+    # UI options
+    "changeform_format": "horizontal_tabs",  # horizontal_tabs / stacked / collapsible
+    "changeform_format_overrides": {"auth.user": "collapsible"},
+    "list_per_page": 25,
+    "show_ui_builder": True,
+    "related_modal_active": True,
+    
+    # Styling options
+    # "site_logo": "images/logo.png",  # ❌ Remove this line
+    # "site_logo_classes": "img-circle shadow-lg",  # ❌ Remove this line
+    "site_icon": "fas fa-graduation-cap",
+    
+    # Colors and theme
+    "theme": "flatly",
+    "dark_mode_theme": "darkly",
+    "custom_css": "css/custom_jazzmin.css",  
+    "custom_js": "js/custom_jazzmin.js",
+    
+    # Sidebar & menu icons
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "TrinityEd_app.student": "fas fa-user-graduate",
+        "TrinityEd_app.attendance": "fas fa-calendar-check",
+        "TrinityEd_app.performance": "fas fa-chart-line",
+        "TrinityEd_app.alert": "fas fa-bell",
+    },
+    
+    # UI tweaks
+    "show_ui_builder": True,
+    "show_sidebar_icons": True,
+}
+
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
@@ -116,7 +167,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "godanishubham30@gmail.com"
 EMAIL_HOST_PASSWORD = "cjiu mtga qdmd elna"  
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
+EMAIL_TIMEOUT = 10
 
 
 # Login/Logout URLs
@@ -131,5 +182,14 @@ AUTHENTICATION_BACKENDS = [
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For testing
 # Or use a real email backend like SMTP
 # DEFAULT_FROM_EMAIL = 'godanishubham30@gmail.com'
+import os
+from dotenv import load_dotenv
 
+# Load .env file
+load_dotenv()
 
+# Get Gemini key from environment
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise ValueError("⚠️ GEMINI_API_KEY is not set! Please check your .env file.")
