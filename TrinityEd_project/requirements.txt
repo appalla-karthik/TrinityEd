@@ -19,4 +19,5 @@ pydantic_core>=2.33.2  # Pydantic core utilities
 annotated-types==0.7.0  # Type hinting for Pydantic
 typing_extensions==4.12.2  # Type system backports
 tzdata>=2025.2  # Time zone database
+python-dotenv==1.1.1
 
