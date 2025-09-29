@@ -21,3 +21,4 @@ tzdata>=2025.2  # Time zone database
 gunicorn==22.0.0  # WSGI HTTP server for Django
 python-dotenv==1.1.1  # Load .env files
 django-jazzmin==3.0.1  # Enhanced Django admin interface
+openai==1.77.0
