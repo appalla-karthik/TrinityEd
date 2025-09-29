@@ -12,9 +12,11 @@ requests==2.32.3  # HTTP requests
 pytz>=2025.2  # Time zone support
 sqlparse==0.5.3  # SQL parsing for Django
 psutil>=7.0.0  # System and process utilities
+gunicorn==22.0.0
 pillow>=11.1.0  # Image processing
 pydantic>=2.11.4  # Data validation
 pydantic_core>=2.33.2  # Pydantic core utilities
 annotated-types==0.7.0  # Type hinting for Pydantic
 typing_extensions==4.12.2  # Type system backports
 tzdata>=2025.2  # Time zone database
+
