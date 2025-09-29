@@ -107,7 +107,6 @@ pyparsing==3.2.3
 pypdf>=6.0.0
 PyPDF2==3.0.1
 pyperclip==1.9.0
-pypiwin32>=305
 PyRect==0.2.0
 PyScreeze==1.0.1
 pytest==8.4.2
