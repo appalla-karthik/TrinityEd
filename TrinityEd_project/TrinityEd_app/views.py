@@ -456,10 +456,10 @@ def student(request, student_id):
     total_credits = student_obj.total_credits or 0
     incidents = student_obj.incidents_count or 0
     notifications = Alert.objects.filter(student=student_obj).order_by('-timestamp')[:5]
-    messages = [a.description for a in notifications]
+    messages_list = [a.description for a in notifications]
 
     context = {
-        "student_name": student_obj.name or student_obj.user.username if student_obj.user else "Unknown",
+        "student_name": student_obj.name or (student_obj.user.username if student_obj.user else "Unknown"),
         "student_id": student_obj.id,
         "grade": student_obj.grade or "N/A",
         "email": student_obj.user.email if student_obj.user else "",
@@ -471,7 +471,9 @@ def student(request, student_id):
         "total_credits": total_credits,
         "incidents": incidents,
         "notifications": notifications,
-        "messages": messages,
+        "messages": messages_list,
+        "need_counselling": student_obj.need_counselling,  # Explicitly include from database
+        "area_of_interest": student_obj.area_of_interest or "Not Specified",  # Explicitly include from database
     }
     logger.debug(f"Student dashboard context for {student_id}: {context}")
     return render(request, "student.html", context)
@@ -712,3 +714,60 @@ def resources(request):
     context = {}
     logger.debug("Rendering resources page")
     return render(request, "resources.html", context)
+
+@login_required
+def edit_profile(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+
+    if request.method == "POST":
+        try:
+            # Update basic fields
+            student.name = request.POST.get("student_name", student.name)
+            student.phone = request.POST.get("phone", student.phone)
+            student.grade = request.POST.get("grade", student.grade)
+            student.area_of_interest = request.POST.get("area_of_interest", student.area_of_interest)
+
+            # Update need_counselling (stored as 'yes'/'no')
+            need_counselling = request.POST.get("need_counselling", "no").lower()
+            student.need_counselling = "yes" if need_counselling in ["yes", "true", "1"] else "no"
+
+            # Update email if user exists
+            email = request.POST.get("email")
+            if email and student.user:
+                student.user.email = email
+                student.user.save()
+                logger.info(f"Updated email for user {student.user.username} to {email}")
+
+            # Update counselling_time if provided
+            counselling_time = request.POST.get("counselling_time")
+            if counselling_time:
+                try:
+                    student.counselling_time = timezone.make_aware(timezone.datetime.strptime(counselling_time, '%Y-%m-%dT%H:%M'))
+                except ValueError:
+                    logger.warning(f"Invalid counselling_time format for student {student.id}: {counselling_time}")
+                    messages.error(request, "Invalid date/time format for counselling session.")
+
+            # Save student changes
+            student.save()
+            logger.info(f"Updated profile for student {student.id} ({student.name})")
+            messages.success(request, "Profile updated successfully!")
+            return redirect("student", student_id=student.id)
+
+        except Exception as e:
+            logger.error(f"Error updating profile for student {student.id}: {e}")
+            messages.error(request, "An error occurred while updating the profile. Please try again.")
+
+    # Prepare context safely
+    context = {
+        "student": student,
+        "student_name": student.name or "",
+        "phone": student.phone or "",
+        "grade": student.grade or "",
+        "email": student.user.email if student.user else "",
+        "area_of_interest": student.area_of_interest or "",
+        "dropout_risk": "High" if student.is_at_risk else "Low",
+        "need_counselling": student.need_counselling,  # Pass the current value
+        "counselling_time": student.counselling_time.strftime('%Y-%m-%dT%H:%M') if student.counselling_time else "",
+    }
+    logger.debug(f"Rendering edit_profile page for student {student.id} with context: {context}")
+    return render(request, "edit_profile.html", context)

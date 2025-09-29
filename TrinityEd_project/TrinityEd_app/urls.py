@@ -1,4 +1,3 @@
-# TrinityEd_app/urls.py
 from django.urls import path
 from . import views
 
@@ -11,7 +10,8 @@ urlpatterns = [
     path('fees/', views.fee_status, name='fee_status'),
     path('alerts/', views.alerts_view, name='alerts'),
     path('alerts/mark-read/', views.mark_alert_read, name='mark_alert_read'),
-    path('student/<int:student_id>/', views.student, name='student'),  # Corrected URL pattern
+    path('student/<int:student_id>/', views.student, name='student'),  # Student profile
+    path('student/<int:student_id>/edit/', views.edit_profile, name='edit_profile'),  # ✅ NEW URL added
     path('progress/', views.progress, name='progress'),
     path('counselling/', views.counselling, name='counselling'),
     path('resources/', views.resources, name='resources'),

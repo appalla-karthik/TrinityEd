@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | TrinityEd</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f7fafc, #e6eef6);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #2d3748;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 450px;
+            width: 90%;
+            padding: 1.5rem;
+            background: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease-in-out;
+        }
+        .container:hover {
+            transform: translateY(-3px);
+        }
+        h2 {
+            color: #2b6cb0;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -0.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2rem;
+            height: 0.125rem;
+            background: #2b6cb0;
+            border-radius: 0.125rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.25rem;
+            display: block;
+            font-size: 0.875rem;
+        }
+        input, textarea {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            width: 100;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: #2b6cb0;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.1);
+        }
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            font-weight: 400;
+            color: #4a5568;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .radio-label input {
+            margin-right: 0.25rem;
+            cursor: pointer;
+        }
+        .optional-field {
+            display: none;
+            margin-top: 0.5rem;
+            transition: opacity 0.3s ease;
+        }
+        .optional-field.active {
+            display: block;
+            opacity: 1;
+        }
+        .helper-text {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+        .read-only {
+            background-color: #edf2f7;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            color: #4a5568;
+            font-size: 0.875rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e0;
+            transform: translateY(-1px);
+        }
+        .btn-save {
+            background: #2b6cb0;
+            color: #ffffff;
+        }
+        .btn-save:hover {
+            background: #2c5282;
+            transform: translateY(-1px);
+        }
+        @media (max-width: 640px) {
+            .form-columns {
+                grid-template-columns: 1fr;
+            }
+            .radio-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .btn-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+    <script>
+        function toggleCounselling() {
+            const counsellingDiv = document.getElementById("counselling_div");
+            const needCounsellingYes = document.getElementById("need_counselling_yes");
+            counsellingDiv.classList.toggle("active", needCounsellingYes.checked);
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            toggleCounselling(); // Initial toggle based on current value
+        });
+    </script>
+</head>
+<body>
+    <div class="container flex flex-col max-w-md w-full p-6">
+        <h2>Edit 345678Profile</h2>
+
+        <!-- Scrollable Form -->
+        <div class="flex-1 overflow-y-auto max-h-[65vh] pr-2">
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="form-columns grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="form-group">
+                            <label for="student_name">Name</label>
+                            <input type="text" id="student_name" name="student_name" value="{{ student_name }}" required
+                                   class="focus:ring-blue-500 w-full">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="{{ email }}" required
+                                   class="focus:ring-blue-500 w-full">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="text" id="phone" name="phone" value="{{ phone }}" required
+                                   class="focus:ring-blue-500 w-full">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="grade">Grade</label>
+                            <input type="text" id="grade" name="grade" value="{{ grade }}" required
+                                   class="focus:ring-blue-500 w-full">
+                        </div>
+                        <div class="form-group">
+                            <label for="area_of_interest">Area of Interest</label>
+                            <textarea id="area_of_interest" name="area_of_interest" rows="2"
+                                      class="focus:ring-blue-500 w-full">{{ area_of_interest }}</textarea>
+                            <p class="helper-text">e.g., Science, Arts</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Need Counselling?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="need_counselling" id="need_counselling_yes" value="yes"
+                                           onclick="toggleCounselling()" {% if need_counselling == 'yes' %}checked{% endif %}>
+                                    Yes
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="need_counselling" id="need_counselling_no" value="no"
+                                           onclick="toggleCounselling()" {% if need_counselling == 'no' %}checked{% endif %}>
+                                    No
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dropout Risk</label>
+                    <p class="read-only">{{ dropout_risk }} (System Calculated)</p>
+                </div>
+
+                <div class="form-group optional-field" id="counselling_div">
+                    <label for="counselling_time">Counselling Time (Optional)</label>
+                    <input type="datetime-local" id="counselling_time" name="counselling_time" value="{{ counselling_time }}"
+                           class="focus:ring-blue-500 w-full">
+                    <p class="helper-text">Select date and time</p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Buttons always visible -->
+        <div class="flex justify-between mt-4 btn-group">
+            <a href="{% url 'student' student.id %}" class="btn btn-cancel flex-1 text-center">
+                <svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-save flex-1 text-center">
+                <svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3a1 1 0 001 1h2a1 1 0 100-2h-1V7z" clip-rule="evenodd" />
+                </svg>
+                Save
+            </button>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings  # For custom User model
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -23,15 +23,26 @@ class Student(models.Model):
     total_credits = models.IntegerField(default=0)
     incidents_count = models.IntegerField(default=0)
 
-    def __str__(self):
-        return self.name
+    # ✅ Editable fields
+    area_of_interest = models.TextField(blank=True, null=True, help_text="Student's academic/career interests")
+    need_counselling = models.CharField(
+        max_length=10,
+        choices=[("yes", "Yes"), ("no", "No")],
+        default="no",
+        help_text="Does the student need counselling?"
+    )
 
-# Automatically create Student when a User with role='student' is created
+    def __str__(self):
+        return self.name or (self.user.username if self.user else "Unknown Student")
+
+
+# Automatically create sample data for new students
 @receiver(post_save, sender=Student)
 def create_sample_data_for_student(sender, instance, created, **kwargs):
     if created:
         Performance.objects.create(student=instance, test_name="Initial Test", subject="Math", score=80)
         Attendance.objects.create(student=instance, date=date.today(), status="Present", percentage=100)
+
 
 # ----------------- Attendance -----------------
 class Attendance(models.Model):
@@ -50,6 +61,7 @@ class Attendance(models.Model):
     @property
     def recorded_date(self):
         return self.date
+
 
 # ----------------- Performance -----------------
 class Performance(models.Model):
@@ -88,6 +100,7 @@ class Performance(models.Model):
     def __str__(self):
         return f"{self.student.name} - {self.test_name} ({self.score}/{self.max_score})"
 
+
 # ----------------- Fee -----------------
 class Fee(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -99,6 +112,7 @@ class Fee(models.Model):
 
     def __str__(self):
         return f"{self.student.name if self.student else 'Unknown'} - Pending: {self.pending}"
+
 
 # ----------------- Alert -----------------
 class Alert(models.Model):
@@ -120,59 +134,45 @@ class Alert(models.Model):
     def __str__(self):
         return self.title or "Alert"
 
+
 # ----------------- Progress -----------------
 class Progress(models.Model):
-    """
-    Model to store and manage student progress data for the admin panel.
-    This data is used to display trends and summaries on the progress page.
-    """
     student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='progress_data')
-    
-    # GPA / Score Trend (stored as JSON for flexibility)
-    gpa_labels = models.JSONField(default=list, blank=True, help_text="Labels for GPA trend (e.g., ['Jan 01', 'Jan 15'])")
-    gpa_data = models.JSONField(default=list, blank=True, help_text="GPA data points (e.g., [75, 80])")
-    
-    # Attendance Trend (by month)
-    attendance_labels = models.JSONField(default=list, blank=True, help_text="Labels for attendance trend (e.g., ['Jan 2025'])")
-    attendance_data = models.JSONField(default=list, blank=True, help_text="Attendance percentage data (e.g., [95, 90])")
-    
-    # Subject-wise Performance
-    subject_labels = models.JSONField(default=list, blank=True, help_text="Subject names (e.g., ['Math', 'Science'])")
-    subject_data = models.JSONField(default=list, blank=True, help_text="Average scores per subject (e.g., [85, 78])")
-    
-    # Grade Summary
-    grade_summary = models.JSONField(default=list, blank=True, help_text="Summary of grades (e.g., [{'subject': 'Math', 'grade': 'A'}])")
-    
-    # Behavioral Incidents
-    incidents_count = models.PositiveIntegerField(default=0, help_text="Total number of incidents")
-    incident_list = models.JSONField(default=list, blank=True, help_text="List of incident descriptions (e.g., ['Incident 1'])")
-    
-    last_updated = models.DateTimeField(auto_now=True, help_text="Last time the progress data was updated")
+    gpa_labels = models.JSONField(default=list, blank=True)
+    gpa_data = models.JSONField(default=list, blank=True)
+    attendance_labels = models.JSONField(default=list, blank=True)
+    attendance_data = models.JSONField(default=list, blank=True)
+    subject_labels = models.JSONField(default=list, blank=True)
+    subject_data = models.JSONField(default=list, blank=True)
+    grade_summary = models.JSONField(default=list, blank=True)
+    incidents_count = models.PositiveIntegerField(default=0)
+    incident_list = models.JSONField(default=list, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.student.name} Progress"
 
-    class Meta:
-        verbose_name = "Student Progress"
-        verbose_name_plural = "Students Progress"
 
-# ... (other models remain unchanged)
-
-# ... (other models remain unchanged)
-
+# ----------------- CounsellingSession -----------------
 class CounsellingSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='sessions')
-    name = models.CharField(max_length=100, help_text="Student's name")
-    email = models.EmailField(max_length=254, help_text="Student's email")
-    mentor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'role': 'mentor'}, help_text="Selected mentor")
-    scheduled_time = models.DateTimeField(help_text="Scheduled session time")
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=254)
+    mentor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'role': 'mentor'}
+    )
+    scheduled_time = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=20,
         choices=[('pending', 'Pending'), ('confirmed', 'Confirmed'), ('cancelled', 'Cancelled')],
         default='pending'
     )
-    description = models.TextField(blank=True, null=True, help_text="Additional session details")
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.name} - {self.scheduled_time.date()} ({self.status})"
+        return f"{self.name} - {self.scheduled_time.date() if self.scheduled_time else 'Not Scheduled'} ({self.status})"

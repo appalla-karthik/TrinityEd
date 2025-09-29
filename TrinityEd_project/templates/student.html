@@ -7,12 +7,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    /* Consistent styles with resources.html */
     body {
-      background: linear-gradient(135deg, #f0faff, #fdfdff, #eaf3ff);
+      background: linear-gradient(135deg, #f3f7fa, #ffffff, #e6eef6);
       background-size: 300% 300%;
       animation: gradientShift 15s ease infinite;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #2d3748;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
@@ -20,51 +20,56 @@
       100% { background-position: 0% 50%; }
     }
 
-    .mac-window {
-      width: 90%;
+    .dashboard-container {
+      width: 95%;
+      max-width: 1400px;
       margin: 2rem auto;
       height: 90vh;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 14px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
     }
-    .mac-header {
+    .dashboard-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
-      background: #f3f4f6;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #ffffff, #f7fafc);
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
-    .mac-btn {
+    .header-btn {
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      margin-right: 8px;
+      margin-right: 10px;
       display: inline-block;
       cursor: pointer;
+      transition: transform 0.2s ease;
     }
-    .red { background: #ef4444; }
-    .yellow { background: #facc15; }
-    .green { background: #22c55e; }
-    .mac-title { margin-left: 0.5rem; font-size: 0.9rem; color: #374151; }
+    .header-btn:hover { transform: scale(1.1); }
+    .red { background: #e53e3e; }
+    .yellow { background: #ecc94b; }
+    .green { background: #38a169; }
+    .dashboard-title { margin-left: 1rem; font-size: 1.1rem; font-weight: 600; color: #2b6cb0; }
 
     .stat-card, .chart-box {
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 18px;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(37, 99, 235, 0.15);
-      padding: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      border: 1px solid rgba(37, 99, 235, 0.1);
+      padding: 24px;
       transition: all 0.3s ease;
     }
     .stat-card:hover, .chart-box:hover {
-      transform: scale(1.03);
-      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(37, 99, 235, 0.15);
     }
 
     .notification-wrapper {
@@ -72,49 +77,59 @@
       cursor: pointer;
     }
     .notification-icon {
-      font-size: 24px;
-      color: #374151;
+      font-size: 28px;
+      color: #4a5568;
+      transition: color 0.2s ease;
     }
+    .notification-icon:hover { color: #2b6cb0; }
     .notification-count {
       position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #ef4444;
+      top: -6px;
+      right: -6px;
+      background: #e53e3e;
       color: white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 10px;
+      font-weight: 500;
     }
     .notification-dropdown {
       display: none;
       position: absolute;
       top: 100%;
       right: 0;
-      background: white;
+      background: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      min-width: 200px;
-      z-index: 10;
-      padding: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      min-width: 220px;
+      z-index: 50;
+      padding: 12px;
+      max-height: 300px;
+      overflow-y: auto;
     }
     .notification-dropdown.active {
       display: block;
     }
     .notification-item {
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 0.9rem;
+      color: #4a5568;
+      transition: background 0.2s ease;
+    }
+    .notification-item:hover {
+      background: #f7fafc;
     }
     .notification-item:last-child {
       border-bottom: none;
     }
 
-    /* Custom styles for progress rings */
     .progress-ring__circle {
-      transition: stroke-dashoffset 0.3s;
+      transition: stroke-dashoffset 0.5s ease-in-out;
       transform: rotate(-90deg);
       transform-origin: 50% 50%;
     }
@@ -123,20 +138,150 @@
     .gradient-credits { stroke: url(#gradientOrange); }
     .gradient-incidents { stroke: url(#gradientRed); }
 
-    .low-text { color: #22c55e; }
-    .medium-text { color: #f59e0b; }
-    .high-text { color: #dc2626; }
+    .low-text { color: #38a169; }
+    .medium-text { color: #ecc94b; }
+    .high-text { color: #e53e3e; }
+
+    .profile-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 1.5rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    }
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #edf2f7;
+      transition: transform 0.3s ease;
+    }
+    .profile-img:hover { transform: scale(1.05); }
+    .profile-info h1 {
+      font-size: 2rem;
+      color: #2b6cb0;
+      margin-bottom: 0.5rem;
+    }
+    .profile-info p {
+      font-size: 0.95rem;
+      color: #718096;
+      margin: 0.25rem 0;
+    }
+    .profile-info a {
+      color: #2b6cb0;
+      text-decoration: none;
+    }
+    .profile-info a:hover { text-decoration: underline; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .messages-section {
+      margin-bottom: 2rem;
+    }
+    .edit-btn {
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .edit-btn:hover {
+      background: #2b6cb0;
+      transform: translateY(-2px);
+    }
+
+    .modal {
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 30px;
+    }
+    .modal-content {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      transform: translateY(0);
+      transition: transform 0.3s ease;
+    }
+    .modal-content label {
+      font-weight: 500;
+      color: #4a5568;
+    }
+    .modal-content input,
+    .modal-content textarea {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      width: 100%;
+      transition: border-color 0.2s ease;
+    }
+    .modal-content input:focus,
+    .modal-content textarea:focus {
+      border-color: #2b6cb0;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.2);
+    }
+    .modal-content .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .modal-content .button-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .modal-content button {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .modal-content button:hover {
+      transform: translateY(-2px);
+    }
+    .modal-content .cancel-btn {
+      background: #e2e8f0;
+      color: #4a5568;
+      border: none;
+    }
+    .modal-content .save-btn {
+      background: #2b6cb0;
+      color: #ffffff;
+      border: none;
+    }
+    .modal-content .save-btn:hover {
+      background: #2c5282;
+    }
   </style>
 {% endblock %}
 
 {% block content %}
-<div id="macWindow" class="mac-window">
-  <div class="mac-header">
+<div class="dashboard-container" id="macWindow">
+  <div class="dashboard-header">
     <div class="flex items-center">
-      <span id="btnClose" class="mac-btn red"></span>
-      <span id="btnMinimize" class="mac-btn yellow"></span>
-      <span id="btnMaximize" class="mac-btn green"></span>
-      <span class="mac-title">Student Dashboard</span>
+      <span id="btnClose" class="header-btn red"></span>
+      <span id="btnMinimize" class="header-btn yellow"></span>
+      <span id="btnMaximize" class="header-btn green"></span>
+      <span class="dashboard-title">Student Dashboard</span>
     </div>
     <div class="notification-wrapper" id="notifBtn">
       <span class="material-icons notification-icon">notifications</span>
@@ -155,187 +300,270 @@
 
   <main id="macContent" class="flex-1 p-8 overflow-y-auto">
     <!-- Student Profile -->
-    <div class="flex items-start justify-between mb-6">
-      <div class="flex items-center gap-6">
-        <img src="{% static 'img/StudentDashboard.png' %}" alt="Profile" class="w-28 h-28 rounded-full object-cover shadow-md border">
-        <div>
-          <h1 class="text-2xl font-bold text-blue-700">{{ student_name|default:"Unknown Student" }}</h1>
-          <p class="text-sm text-gray-600"><strong>ID:</strong> {{ student_id|default:"N/A" }}</p>
-          <p class="text-sm text-gray-600"><strong>Grade:</strong> {{ grade|default:"N/A" }}</p>
-          <p class="text-sm text-gray-600"><strong>Email:</strong> <a href="mailto:{{ email|default:'N/A' }}" class="text-blue-600 hover:underline">{{ email|default:"N/A" }}</a></p>
-          <p class="text-sm text-gray-600"><strong>Phone:</strong> {{ phone|default:"N/A" }}</p>
+    <div class="profile-section">
+      <img src="{% static 'img/StudentDashboard.png' %}" alt="Profile" class="profile-img">
+      <div class="profile-info">
+        <h1>{{ student_name|default:"Unknown Student" }}</h1>
+        <div class="space-y-1">
+          <p><strong>ID:</strong> {{ student_id|default:"N/A" }}</p>
+          <p><strong>Grade:</strong> {{ grade|default:"N/A" }}</p>
+          <p>
+            <strong>Email:</strong>
+            {% if email %}
+              <a href="mailto:{{ email }}" class="text-blue-600 hover:underline">{{ email }}</a>
+            {% else %}
+              N/A
+            {% endif %}
+          </p>
+          <p><strong>Phone:</strong> {{ phone|default:"N/A" }}</p>
+          <div class="mt-3 space-y-1">
+            <p class="text-sm font-medium"><strong>Need Counselling:</strong> {{ need_counselling|default:"No" | title }}</p>
+            <p class="text-sm font-medium"><strong>Area of Interest:</strong> {{ area_of_interest|default:"Not Specified" }}</p>
+          </div>
         </div>
       </div>
-      <div class="text-right">
-        <p class="text-lg font-semibold {% if dropout_risk == 'High' %}text-red-600{% elif dropout_risk == 'Medium' %}text-orange-600{% else %}text-green-600{% endif %}">Risk Level: {{ dropout_risk|default:"Low" }}</p>
-        <p class="text-sm text-blue-600"><strong>GPA:</strong> {{ gpa|default:0 }}/10.0</p> <!-- Changed to /10.0 -->
+      <div class="text-right ml-auto">
+        <p class="text-lg font-semibold {% if dropout_risk == 'High' %}high-text{% elif dropout_risk == 'Medium' %}medium-text{% else %}low-text{% endif %}">Risk Level: {{ dropout_risk|default:"Low" }}</p>
+        <p class="text-sm text-blue-600 mt-1"><strong>GPA:</strong> {{ gpa|default:0 }}/10.0</p>
+        <a href="{% url 'edit_profile' student_id %}" id="editProfileBtn" class="edit-btn bg-blue-600 text-white mt-3 inline-block">Edit Profile</a>
       </div>
     </div>
 
     <!-- Stats Grid -->
     <svg width="0" height="0">
       <defs>
-        <linearGradient id="gradientBlue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient>
-        <linearGradient id="gradientGreen" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#16a34a"/><stop offset="100%" stop-color="#4ade80"/></linearGradient>
-        <linearGradient id="gradientOrange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d97706"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
-        <linearGradient id="gradientRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dc2626"/><stop offset="100%" stop-color="#f87171"/></linearGradient>
+        <linearGradient id="gradientBlue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2b6cb0"/><stop offset="100%" stop-color="#63b3ed"/></linearGradient>
+        <linearGradient id="gradientGreen" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38a169"/><stop offset="100%" stop-color="#81e6d9"/></linearGradient>
+        <linearGradient id="gradientOrange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dd6b20"/><stop offset="100%" stop-color "#f6ad55"/></linearGradient>
+        <linearGradient id="gradientRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#e53e3e"/><stop offset="100%" stop-color="#fc8181"/></linearGradient>
       </defs>
     </svg>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-      <!-- GPA -->
+    <div class="stats-grid">
       <div class="stat-card">
-        <div class="relative w-20 h-20 flex items-center justify-center">
-          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
-            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
-            <circle class="progress-ring__circle gradient-gpa" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="{{ gpa|default:0 }}" data-max="10"/> <!-- Changed max to 10 -->
+        <div class="relative w-24 h-24 flex items-center justify-center">
+          <svg class="w-24 h-24 absolute" viewBox="0 0 120 120">
+            <circle stroke="#edf2f7" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+            <circle class="progress-ring__circle gradient-gpa" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="{{ gpa|default:0 }}" data-max="10"/>
           </svg>
-          <span class="material-icons text-blue-600 text-3xl">school</span>
+          <span class="material-icons text-blue-600 text-4xl">school</span>
         </div>
-        <div>
+        <div class="text-center mt-4">
           <p class="text-sm text-gray-500">Current GPA</p>
-          <p class="text-xl font-bold">{{ gpa|default:0 }}/10</p> <!-- Changed to /10 -->
+          <p class="text-2xl font-bold text-blue-600">{{ gpa|default:0 }}/10</p>
         </div>
       </div>
 
-      <!-- Attendance -->
       <div class="stat-card">
-        <div class="relative w-20 h-20 flex items-center justify-center">
-          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
-            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+        <div class="relative w-24 h-24 flex items-center justify-center">
+          <svg class="w-24 h-24 absolute" viewBox="0 0 120 120">
+            <circle stroke="#edf2f7" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
             <circle class="progress-ring__circle gradient-attendance" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="{{ attendance_rate|default:0 }}" data-max="100"/>
           </svg>
-          <span class="material-icons text-green-600 text-3xl">event_available</span>
+          <span class="material-icons text-green-600 text-4xl">event_available</span>
         </div>
-        <div>
+        <div class="text-center mt-4">
           <p class="text-sm text-gray-500">Attendance Rate</p>
-          <p class="text-xl font-bold">{{ attendance_rate|default:0 }}%</p>
+          <p class="text-2xl font-bold text-green-600">{{ attendance_rate|default:0 }}%</p>
         </div>
       </div>
 
-      <!-- Credits -->
       <div class="stat-card">
-        <div class="relative w-20 h-20 flex items-center justify-center">
-          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
-            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+        <div class="relative w-24 h-24 flex items-center justify-center">
+          <svg class="w-24 h-24 absolute" viewBox="0 0 120 120">
+            <circle stroke="#edf2f7" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
             <circle class="progress-ring__circle gradient-credits" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="{{ credits_earned|default:0 }}" data-max="{{ total_credits|default:1 }}"/>
           </svg>
-          <span class="material-icons text-yellow-600 text-3xl">workspace_premium</span>
+          <span class="material-icons text-yellow-600 text-4xl">workspace_premium</span>
         </div>
-        <div>
+        <div class="text-center mt-4">
           <p class="text-sm text-gray-500">Credits Earned</p>
-          <p class="text-xl font-bold">{{ credits_earned|default:0 }}/{{ total_credits|default:0 }}</p>
+          <p class="text-2xl font-bold text-yellow-600">{{ credits_earned|default:0 }}/{{ total_credits|default:0 }}</p>
         </div>
       </div>
 
-      <!-- Incidents -->
       <div class="stat-card">
-        <div class="relative w-20 h-20 flex items-center justify-center">
-          <svg class="w-20 h-20 absolute" viewBox="0 0 120 120">
-            <circle stroke="#e5e7eb" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
+        <div class="relative w-24 h-24 flex items-center justify-center">
+          <svg class="w-24 h-24 absolute" viewBox="0 0 120 120">
+            <circle stroke="#edf2f7" stroke-width="10" fill="transparent" r="54" cx="60" cy="60"/>
             <circle class="progress-ring__circle gradient-incidents" stroke-width="10" fill="transparent" r="54" cx="60" cy="60" data-value="{{ incidents|default:0 }}" data-max="10"/>
           </svg>
-          <span class="material-icons text-red-600 text-3xl">report_problem</span>
+          <span class="material-icons text-red-600 text-4xl">report_problem</span>
         </div>
-        <div>
+        <div class="text-center mt-4">
           <p class="text-sm text-gray-500">Behavioral Incidents</p>
-          <p class="text-xl font-bold">{{ incidents|default:0 }}</p>
+          <p class="text-2xl font-bold text-red-600">{{ incidents|default:0 }}</p>
         </div>
       </div>
     </div>
 
     <!-- Charts Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="charts-grid">
       <div class="chart-box">
-        <h3 class="text-lg font-semibold text-blue-700 mb-4">Weekly Attendance</h3>
+        <h3 class="text-xl font-semibold text-blue-700 mb-4">Weekly Attendance</h3>
         <canvas id="attendanceChart"></canvas>
       </div>
       <div class="chart-box">
-        <h3 class="text-lg font-semibold text-blue-700 mb-4">Test Scores</h3>
+        <h3 class="text-xl font-semibold text-blue-700 mb-4">Test Scores</h3>
         <canvas id="performanceChart"></canvas>
       </div>
     </div>
 
     <!-- Messages Section -->
-    <div class="chart-box mb-6">
-      <h3 class="text-lg font-semibold text-blue-700 mb-4">Status & Messages</h3>
-      <p class="text-lg">Dropout Risk: <span class="font-bold {{ dropout_risk|lower }}-text">{{ dropout_risk|default:"Low" }}</span></p>
-      <ul class="mt-4 divide-y divide-gray-200">
+    <div class="messages-section chart-box">
+      <h3 class="text-xl font-semibold text-blue-700 mb-4">Status & Messages</h3>
+      <p class="text-lg mb-2">Dropout Risk: <span class="font-bold {{ dropout_risk|lower }}-text">{{ dropout_risk|default:"Low" }}</span></p>
+      <ul class="divide-y divide-gray-200">
         {% for message in messages %}
-          <li class="py-2 text-sm">{{ message|default:"No message" |safe }}</li>
+          <li class="py-3 text-base">{{ message|default:"No message" |safe }}</li>
         {% empty %}
-          <li class="py-2 text-sm text-gray-500">No messages available.</li>
+          <li class="py-3 text-base text-gray-500">No messages available.</li>
         {% endfor %}
       </ul>
     </div>
   </main>
 </div>
+
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal fixed inset-0 hidden items-end justify-center z-100">
+  <div class="modal-content bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4 mb-8">
+    <h2 class="text-2xl font-bold mb-6 text-blue-700">Edit Profile</h2>
+    <form method="POST" action="{% url 'edit_profile' student_id %}" class="space-y-4">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="block mb-2">Name</label>
+        <input type="text" name="student_name" value="{{ student_name }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="form-group">
+        <label class="block mb-2">Email</label>
+        <input type="email" name="email" value="{{ email }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="form-group">
+        <label class="block mb-2">Phone</label>
+        <input type="text" name="phone" value="{{ phone }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="form-group">
+        <label class="block mb-2">Grade</label>
+        <input type="text" name="grade" value="{{ grade }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="form-group">
+        <label class="block mb-2">Area of Interest</label>
+        <textarea name="area_of_interest" rows="3" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ area_of_interest }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="block mb-2">Need Counselling</label>
+        <div class="flex space-x-6">
+          <label class="flex items-center">
+            <input type="radio" name="need_counselling" value="yes" {% if need_counselling == 'yes' %}checked{% endif %} class="mr-2">
+            <span class="text-gray-700">Yes</span>
+          </label>
+          <label class="flex items-center">
+            <input type="radio" name="need_counselling" value="no" {% if need_counselling == 'no' %}checked{% endif %} class="mr-2">
+            <span class="text-gray-700">No</span>
+          </label>
+        </div>
+      </div>
+      <div class="button-group mt-4">
+        <button type="button" id="closeModal" class="cancel-btn px-4 py-2 rounded-md">Cancel</button>
+        <button type="submit" class="save-btn px-4 py-2 rounded-md">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Mac Window Controls
+  const editBtn = document.getElementById("editProfileBtn");
+  const modal = document.getElementById("editProfileModal");
+  const closeModal = document.getElementById("closeModal");
+
+  if (editBtn) {
+    editBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    });
+  }
+
+  if (closeModal) {
+    closeModal.addEventListener("click", () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+  });
+
   const macWindow = document.getElementById("macWindow");
   const macContent = document.getElementById("macContent");
   const btnClose = document.getElementById("btnClose");
   const btnMinimize = document.getElementById("btnMinimize");
   const btnMaximize = document.getElementById("btnMaximize");
-
   let isMaximized = false;
   let isMinimized = false;
 
-  btnClose.addEventListener("click", () => {
-    macWindow.style.display = "none";
-  });
+  if (btnClose) {
+    btnClose.addEventListener("click", () => {
+      if (macWindow) macWindow.style.display = "none";
+    });
+  }
 
-  btnMinimize.addEventListener("click", () => {
-    if (!isMinimized && !isMaximized) {
-      macContent.style.display = "none";
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "auto";
-      macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
-    } else if (isMinimized) {
-      macContent.style.display = "block";
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "90vh";
-      macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
-    }
-    isMinimized = !isMinimized;
-  });
+  if (btnMinimize) {
+    btnMinimize.addEventListener("click", () => {
+      if (macWindow && macContent) {
+        if (!isMinimized && !isMaximized) {
+          macContent.style.display = "none";
+          macWindow.style.height = "50px";
+        } else if (isMinimized) {
+          macContent.style.display = "block";
+          macWindow.style.height = "90vh";
+        }
+        isMinimized = !isMinimized;
+        if (isMinimized) isMaximized = false;
+      }
+    });
+  }
 
-  btnMaximize.addEventListener("click", () => {
-    if (!isMaximized) {
-      macWindow.style.position = "fixed";
-      macWindow.style.top = "0";
-      macWindow.style.left = "0";
-      macWindow.style.width = "100%";
-      macWindow.style.height = "100vh";
-      macWindow.style.margin = "0";
-      macWindow.style.borderRadius = "0";
-    } else {
-      macWindow.style.position = "static";
-      macWindow.style.width = "90%";
-      macWindow.style.height = "90vh";
-      macWindow.style.margin = "2rem auto";
-      macWindow.style.borderRadius = "14px";
-    }
-    isMaximized = !isMaximized;
-    if (isMaximized) isMinimized = false;
-  });
+  if (btnMaximize) {
+    btnMaximize.addEventListener("click", () => {
+      if (macWindow && macContent) {
+        if (!isMaximized) {
+          macWindow.style.position = "fixed";
+          macWindow.style.top = "0";
+          macWindow.style.left = "0";
+          macWindow.style.width = "100%";
+          macWindow.style.height = "100vh";
+          macWindow.style.margin = "0";
+          macWindow.style.borderRadius = "0";
+        } else {
+          macWindow.style.position = "static";
+          macWindow.style.width = "95%";
+          macWindow.style.height = "90vh";
+          macWindow.style.margin = "2rem auto";
+          macWindow.style.borderRadius = "16px";
+        }
+        macContent.style.display = "block";
+        isMaximized = !isMaximized;
+        if (isMaximized) isMinimized = false;
+      }
+    });
+  }
 
-  // Notifications
   const notifBtn = document.getElementById("notifBtn");
   const notifDropdown = document.getElementById("notifDropdown");
-  notifBtn.addEventListener("click", () => notifDropdown.classList.toggle("active"));
-  window.addEventListener("click", (e) => {
-    if (!notifBtn.contains(e.target)) notifDropdown.classList.remove("active");
-  });
+  if (notifBtn && notifDropdown) {
+    notifBtn.addEventListener("click", () => notifDropdown.classList.toggle("active"));
+    window.addEventListener("click", (e) => {
+      if (!notifBtn.contains(e.target)) notifDropdown.classList.remove("active");
+    });
+  }
 
-  // Progress Ring
   document.querySelectorAll(".progress-ring__circle").forEach(circle => {
     const radius = circle.r.baseVal.value;
     const circumference = 2 * Math.PI * radius;
@@ -348,7 +576,6 @@
     setTimeout(() => { circle.style.strokeDashoffset = offset; }, 300);
   });
 
-  // Charts
   new Chart(document.getElementById('attendanceChart'), {
     type: 'line',
     data: {
@@ -356,14 +583,14 @@
       datasets: [{
         label: 'Attendance %',
         data: [{{ attendance_rate|default:0 }}, {{ attendance_rate|default:0 }}, {{ attendance_rate|default:0 }}, {{ attendance_rate|default:0 }}, {{ attendance_rate|default:0 }}, {{ attendance_rate|default:0 }}, {{ attendance_rate|default:0 }}],
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37,99,235,0.15)',
+        borderColor: '#2b6cb0',
+        backgroundColor: 'rgba(43,108,176,0.1)',
         fill: true,
-        tension: 0.35,
-        borderWidth: 3
+        tension: 0.4,
+        borderWidth: 2
       }]
     },
-    options: { scales: { y: { max: 100, beginAtZero: true } } }
+    options: { scales: { y: { max: 100, beginAtZero: true, ticks: { font: { size: 12 } } } } }
   });
 
   new Chart(document.getElementById('performanceChart'), {
@@ -372,12 +599,12 @@
       labels: ['Test 1', 'Test 2', 'Test 3'],
       datasets: [{
         label: 'Scores',
-        data: [{{ gpa|floatformat:1|default:0 }}*10, {{ gpa|floatformat:1|default:0 }}*0, {{ gpa|floatformat:1|default:0 }}*22], // Adjusted to scale with 10
-        borderRadius: 14,
-        backgroundColor: ['#2563eb', '#dc2626', '#f59e0b']
+        data: [{{ gpa|floatformat:1|default:0 }}*10, {{ gpa|floatformat:1|default:0 }}*0, {{ gpa|floatformat:1|default:0 }}*22],
+        borderRadius: 8,
+        backgroundColor: ['#2b6cb0', '#e53e3e', '#ecc94b']
       }]
     },
-    options: { scales: { y: { max: 100, beginAtZero: true } } }
+    options: { scales: { y: { max: 100, beginAtZero: true, ticks: { font: { size: 12 } } } } }
   });
 </script>
 {% endblock %}
