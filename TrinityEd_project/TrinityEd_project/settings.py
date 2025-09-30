@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-5)lm(y#pn_eom0$qitb7izww#cn96e)w0zdw*zytifue_v=7f#'
 
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['trinityed.onrender.com']
 
 INSTALLED_APPS = [
     'jazzmin',
